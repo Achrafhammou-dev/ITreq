@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Purchase Manager - Burger King</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JS (for toasts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --bk-red: #e57373;
+            --bk-red-hover: #d32f2f;
+            --bk-yellow: #ffbe0f;
+            --font-inter: 'Inter', sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            font-family: var(--font-inter);
+            color: #333;
+            padding-bottom: 50px; /* Space for the bottom */
+        }
+        .container-fluid {
+            padding-top: 2rem;
+        }
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.3s ease;
+            background-color: white;
+            padding: 1.5rem;
+            border: none;
+        }
+        .card:hover {
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .btn-custom {
+            background-color: var(--bk-red);
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-custom:hover {
+            background-color: var(--bk-red-hover);
+            color: white;
+        }
+        .table-custom {
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .table-custom th {
+            background-color: #f5f5f5;
+            color: #555;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+        .table-custom td, .table-custom th {
+            border-color: #e0e0e0;
+            vertical-align: middle;
+        }
+        .requisition-order {
+            padding: 2.5rem;
+            max-width: 800px;
+            margin: auto;
+            border: 2px solid #ccc;
+            border-radius: 1rem;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .logo {
+            max-width: 70px;
+        }
+        .grand-total-footer {
+            background-color: var(--bk-yellow);
+            color: #333;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        .print-only {
+            display: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .requisition-order, .requisition-order * {
+                visibility: visible;
+            }
+            .requisition-order {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
+            .d-print-none {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div id="main-app" class="row">
+        <div class="col-lg-11 mx-auto">
+            <h1 class="text-center my-4 fw-bold text-dark-emphasis">👑 IT Department Purchase Manager </h1>
+            <p class="text-center mb-5 text-muted">Effortlessly track and manage all IT equipment and service acquisitions for Burger King.</p>
+
+            <div class="card mb-5">
+                <form id="purchase-form">
+                    <h2 class="h5 mb-4 fw-bold text-dark-emphasis">Add a New Purchase</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="item-name" class="form-label fw-bold">Item Name</label>
+                            <input type="text" class="form-control" id="item-name" placeholder="e.g., POS Terminal, Network Switch" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="quantity" class="form-label fw-bold">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" min="1" value="1" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="unit-cost" class="form-label fw-bold">Unit Cost ($)</label>
+                            <input type="number" class="form-control" id="unit-cost" min="0" step="0.01" value="0.00" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="location" class="form-label fw-bold">Location (Where)</label>
+                            <input type="text" class="form-control" id="location" placeholder="e.g., Burger King BD Anfa" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="recipient" class="form-label fw-bold">Recipient (To Whom)</label>
+                            <input type="text" class="form-control" id="recipient" placeholder="e.g., Mr. Abdessamad" required>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-custom w-100 mt-2">➕ Add Purchase</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2 class="h5 mb-4 fw-bold text-dark-emphasis">Purchase History</h2>
+                
+                <div class="card p-3 mb-4 bg-light shadow-sm">
+                    <h3 class="h6 fw-bold text-primary">Filter by Date Range 📅</h3>
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label for="start-date" class="form-label visually-hidden">Start Date</label>
+                            <input type="date" id="start-date" class="form-control" title="Start Date">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="end-date" class="form-label visually-hidden">End Date</label>
+                            <input type="date" id="end-date" class="form-control" title="End Date">
+                        </div>
+                        <div class="col-md-2">
+                            <button id="filter-btn" class="btn btn-primary w-100">Apply Filter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-custom">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Unit Cost ($)</th>
+                                <th class="text-end">Total Cost ($)</th>
+                                <th>Location</th>
+                                <th>Recipient</th>
+                                <th>Date</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchase-list">
+                            </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end grand-total-footer">Grand Total:</th>
+                                <th id="grand-total" class="text-end grand-total-footer">0.00</th>
+                                <th colspan="4" class="grand-total-footer"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <button id="download-excel" class="btn btn-success">⬇️ Download as Excel</button>
+                   <button id="print-requisition" class="btn btn-outline-dark">🖨️ Print Requisition</button>
+                    <button id="clear-filter" class="btn btn-warning">🔄 Clear Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-view" class="print-only">
+        <div class="requisition-order">
+            <div class="text-center mb-4">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0Xc228_zSp0Uk3xtCqLZvDiyUYgYeIkvXTg&s" alt="Burger King Logo" class="logo">
+                <h2 class="mt-2 mb-0 fw-bold text-danger">Requisition Order</h2>
+                <p class="text-muted">IT Department</p>
+            </div>
+            <hr>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <strong>Requisition Date:</strong> <span id="req-date" class="fw-normal"></span>
+                </div>
+                <div class="col-6 text-end">
+                    <strong>Reference ID:</strong> <span id="req-id" class="fw-normal">IT-REQ-001</span>
+                </div>
+            </div>
+            <p class="fw-bold mb-1">Location: <span id="print-location" class="fw-normal text-primary"></span></p>
+            <p class="fw-bold">Recipient: <span id="print-recipient" class="fw-normal text-primary"></span></p>
+            
+            <table class="table table-bordered mb-4">
+                <thead>
+                    <tr>
+                        <th class="bg-light text-start">Item Name</th>
+                        <th class="text-end bg-light">Quantity</th>
+                        <th class="text-end bg-light">Unit Cost ($)</th>
+                        <th class="text-end bg-light">Total ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="print-item-detail">
+                    </tbody>
+            </table>
+            
+            <div class="text-end fw-bold fs-5 p-2" style="background-color: var(--bk-yellow);">
+                <p class="mb-0">Total Cost: <span id="print-grand-total"></span> $</p>
+            </div>
+            
+            <div class="mt-5 row">
+                <div class="col-6">
+                    <p class="mb-0">Requested by:</p>
+                    <div class="mt-5 text-center">
+                        <div style="border-top: 1px solid #000; display: inline-block; width: 200px;"></div>
+                        <p class="mt-1">IT Purchase Manager</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <p class="mb-0">Authorized by:</p>
+                    <div class="mt-5 text-center">
+                        <div style="border-top: 1px solid #000; display: inline-block; width: 200px;"></div>
+                        <p class="mt-1">Operations Director</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="window.print()" class="btn btn-custom w-100 d-print-none mt-4">🖨️ Print Requisition</button>
+            <button id="back-to-app" class="btn btn-secondary w-100 d-print-none mt-2">⬅️ Back to App</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- ✅ Core Initialization -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Configuration & Elements ---
+    const form = document.getElementById('purchase-form');
+    const purchaseList = document.getElementById('purchase-list');
+    const grandTotalDisplay = document.getElementById('grand-total');
+    const downloadExcelBtn = document.getElementById('download-excel');
+    const filterBtn = document.getElementById('filter-btn');
+    const clearFilterBtn = document.getElementById('clear-filter');
+    const startDateInput = document.getElementById("start-date");
+    const endDateInput = document.getElementById("end-date");
+    const mainApp = document.getElementById('main-app');
+    const printView = document.getElementById('print-view');
+    const backToAppBtn = document.getElementById('back-to-app');
+
+    // ✅ Apps Script URL
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyF-y5JJhYw0Ejmel5LcPMWdRyIovjoqKvL-uFteXxwr_KFJUopiv0OdL_7tPobXCqC/exec"; 
+
+    let allPurchases = [];
+
+    // Store globals for other scripts
+    window.purchaseApp = {
+        form,
+        purchaseList,
+        grandTotalDisplay,
+        downloadExcelBtn,
+        filterBtn,
+        clearFilterBtn,
+        startDateInput,
+        endDateInput,
+        mainApp,
+        printView,
+        backToAppBtn,
+        scriptURL,
+        allPurchases
+    };
+});
+</script>
+
+<!-- ✅ Fetch Purchases -->
+<script>
+async function fetchPurchases() {
+    const { scriptURL } = window.purchaseApp;
+    try {
+        const res = await fetch(scriptURL);
+        const data = await res.json();
+        window.purchaseApp.allPurchases = data.map(p => {
+            p.Quantity = parseFloat(p.Quantity);
+            p["Unit Cost ($)"] = parseFloat(p["Unit Cost ($)"]);
+            p["Total Cost ($)"] = parseFloat(p["Total Cost ($)"]) || (p.Quantity * p["Unit Cost ($)"]);
+            return p;
+        });
+        return window.purchaseApp.allPurchases;
+    } catch (err) {
+        console.error("❌ Error fetching purchases:", err);
+        return [];
+    }
+}
+</script>
+
+<!-- ✅ Render Purchases -->
+<script>
+async function renderPurchases(filterStart = null, filterEnd = null) {
+    const { allPurchases: all, purchaseList, grandTotalDisplay } = window.purchaseApp;
+    let allPurchases = all;
+    if (allPurchases.length === 0) allPurchases = await fetchPurchases();
+
+    let filtered = allPurchases;
+    let grandTotal = 0;
+    purchaseList.innerHTML = '';
+
+    if (filterStart && filterEnd) {
+        const start = new Date(filterStart);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(filterEnd);
+        end.setHours(23, 59, 59, 999);
+        filtered = allPurchases.filter(p => {
+            const purchaseDate = new Date(p["Date"]);
+            purchaseDate.setHours(0, 0, 0, 0);
+            return purchaseDate >= start && purchaseDate <= end;
+        });
+    }
+
+    if (filtered.length === 0) {
+        purchaseList.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No purchases found for the selected filter.</td></tr>';
+    }
+
+    filtered.forEach((purchase, index) => {
+        grandTotal += purchase["Total Cost ($)"];
+        const dateObj = new Date(purchase["Date"]);
+        const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${purchase["Item Name"]}</td>
+            <td class="text-end">${purchase.Quantity}</td>
+            <td class="text-end">${purchase["Unit Cost ($)"].toFixed(2)}</td>
+            <td class="text-end">${purchase["Total Cost ($)"].toFixed(2)}</td>
+            <td>${purchase.Location}</td>
+            <td>${purchase.Recipient}</td>
+            <td>${formattedDate}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary print-order-btn" data-index="${index}" data-row-index="${purchase.rowIndex}">View & Print</button>
+            </td>
+        `;
+        purchaseList.appendChild(row);
+    });
+
+    grandTotalDisplay.textContent = grandTotal.toFixed(2);
+}
+</script>
+
+<!-- ✅ Submit Form -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const { form, scriptURL } = window.purchaseApp;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const itemName = document.getElementById('item-name').value;
+        const quantity = document.getElementById('quantity').value;
+        const unitCost = document.getElementById('unit-cost').value;
+        const location = document.getElementById('location').value;
+        const recipient = document.getElementById('recipient').value;
+
+        const newPurchase = {
+            itemName,
+            quantity: parseFloat(quantity),
+            unitCost: parseFloat(unitCost),
+            location,
+            recipient
+        };
+
+        const submitButton = e.submitter;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Adding...';
+
+        try {
+            const formData = new FormData();
+            Object.keys(newPurchase).forEach(key => formData.append(key, newPurchase[key]));
+
+            await fetch(scriptURL, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData
+            });
+
+            console.log("✅ Sent to Google Sheet successfully!");
+            window.purchaseApp.allPurchases = [];
+            await renderPurchases();
+            form.reset();
+            showToast("Purchase added successfully!", "success");
+        } catch (err) {
+            console.error("❌ Error sending to sheet:", err);
+            showToast("An error occurred while adding the purchase.", "error");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = '➕ Add Purchase';
+        }
+    });
+});
+</script>
+
+<!-- ✅ Filter & Clear Filter -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const { filterBtn, clearFilterBtn, startDateInput, endDateInput } = window.purchaseApp;
+
+    filterBtn.addEventListener("click", () => {
+        const start = startDateInput.value;
+        const end = endDateInput.value;
+        if (start && end) renderPurchases(start, end);
+        else showToast("Please select both a start and end date.", "info");
+
+    });
+
+    clearFilterBtn.addEventListener("click", () => {
+        startDateInput.value = "";
+        endDateInput.value = "";
+        renderPurchases();
+    });
+});
+</script>
+
+ <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    // These variables assume the main application context (window.purchaseApp) still exists.
+    const { mainApp, printView, backToAppBtn, startDateInput, endDateInput } = window.purchaseApp;
+    const printBtn = document.getElementById('print-requisition');
+
+    printBtn.addEventListener('click', () => {
+        let filtered = window.purchaseApp.allPurchases;
+        const start = startDateInput.value;
+        const end = endDateInput.value;
+
+        // --- Data Filtering Logic (Kept from original script) ---
+        if (start && end) {
+            const s = new Date(start);
+            s.setHours(0, 0, 0, 0);
+            const e = new Date(end);
+            e.setHours(23, 59, 59, 999);
+            filtered = filtered.filter(p => {
+                const d = new Date(p["Date"]);
+                return d >= s && d <= e;
+            });
+        }
+
+        if (!filtered.length) {
+            alert("No purchases to print for the selected period.");
+            return;
+        }
+
+        const today = new Date();
+        const dateLabel = today.toLocaleDateString('fr-FR');
+        const prNumber = `PR-${today.getFullYear()}-${String(Math.floor(Math.random() * 999)).padStart(3, '0')}`;
+        
+        // --- Dynamic Row Generation ---
+        const MAX_ROWS = 12; 
+        
+        const rows = filtered.map((p, i) => `
+            <tr style="height: 14px;">
+                <td>${i + 1}</td>
+                <td>${p["Item Code"] || " "}</td>
+                <td><span style="font-family: 'Times New Roman', Times, serif; font-weight: bold; font-size: 13px;">${p["Item Name"] || " "}</span>  (${p["Recipient"] || " "} ; ${p["Location"] || " "}) </td>
+                <td>${p["Category"] || " "}</td>
+                <td style="text-align:Center;" >${p.Quantity || 1}</td>
+                <td style="text-align:Center;" >${p["Unit"] || "pcs"}</td>
+                <td>${p["Date Needed"] || " "}</td>
+                <td style="text-align:right;" >${(p["Unit Cost ($)"] ).toFixed(2)}</td>
+                <td style="text-align:right;" >${p["Total Cost ($)"].toFixed(2)}</td>
+            </tr>
+        `).join('');
+const totalCostUSD = filtered.reduce((sum, p) => sum + (p["Total Cost ($)"] || 0), 0);
+const formattedTotalCost = totalCostUSD.toFixed(2);
+        const emptyRowsCount = Math.max(0, MAX_ROWS - filtered.length);
+        const emptyRows = Array.from({ length: emptyRowsCount }).map(() => `
+            <tr style="height: 16px;">
+                <td>&nbsp;</td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+        `).join('');
+
+        // Add the 'HT' footer row if the main content has data
+
+            const footerRow = filtered.length > 0 ? 
+    `<tr>
+        <td colspan="8" style="text-align: right; font-weight: bold;">Total Mad :</td>
+        <td style="text-align: right; font-weight: bold;">${formattedTotalCost} Dhs</td>
+    </tr>` : 
+    `<tr style="height: 16px;"><td colspan="9" style="text-align: right; font-weight: bold;"></td></tr>`;
+
+        // --- Requisition HTML Template (Updated for Fixed A4 Landscape Style) ---
+        const requisitionHTML = `
+            <style>
+                /* --- Print-Specific Styles --- */
+                @page {
+                    size: A4 landscape;
+                    margin: 10mm;
+                }
+
+                html, body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100%;
+                    height: 100%;
+                    font-family: Arial, sans-serif;
+                    font-size: 11px;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
+                body * {
+                    visibility: hidden;
+                }
+                #print-area, #print-area * {
+                    visibility: visible;
+                }
+                #print-area {
+                background-color: white ;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: auto;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                /* --- Header Section --- */
+                header {
+                    display: flex;
+                    align-items: center;
+                    border-bottom: 1px solid #000;
+                    padding-bottom: 5px;
+                    margin-bottom: 10px;
+                    flex-shrink: 0;
+                }
+                .header-flex {
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                }
+                .logo-left {
+                    flex: 0 0 auto;
+                    text-align: left;
+                    margin-right: 15px;
+                }
+                .logo-left img {
+                    width: 70px;
+                    height: auto;
+                    display: block;
+                }
+                .header-title {
+                    flex: 1;
+                    text-align: center;
+                }
+                .header-title h3, .header-title h4 {
+                    margin: 0;
+                    line-height: 1.2;
+                }
+                .header-title h3 { font-size: 20px; margin-bottom:10px; }
+                .header-title h4 { font-size: 13px; margin-top : 10px; }
+
+                /* --- Main Content --- */
+                main {
+                    flex-grow: 1;
+                    padding-bottom: 10px;
+                }
+
+                .section {
+                    margin-bottom: 8px;
+                }
+
+                /* --- Table Styles --- */
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                    font-size: 11px;
+                }
+                th, td {
+                    border: 1px solid #000;
+                    padding: 3px 4px;
+                    text-align: left;
+                    height: 16px; /* Fixed height for consistent lines */
+                }
+                th {
+                    background: #bdbdbd;
+                    text-align: center;
+                    font-weight: bold;
+                }
+
+                /* Column Widths for Item Table (Adjusted for landscape A4) */
+                .item-table th:nth-child(1) { width: 4%; } /* S. No. */
+                .item-table th:nth-child(2) { width: 4%; } /* Item code */
+                .item-table th:nth-child(3) { width: 36%; } /* Item description */
+                .item-table th:nth-child(4) { width: 6%; } /* Item category */
+                .item-table th:nth-child(5) { width: 6%; } /* Qty */
+                .item-table th:nth-child(6) { width: 8%; } /* UOM */
+                .item-table th:nth-child(7) { width: 10%; } /* Date needed */
+                .item-table th:nth-child(8) { width: 13%; } /* Est. Price (MAD) */
+                .item-table th:nth-child(9) { width: 13%; } /* Total (MAD) */
+
+                /* Section for Delivery and Remarks (Split border box) */
+                .border-split {
+                    display: flex;
+                    justify-content: space-between;
+                    border: 1px solid #000;
+                    padding: 5px;
+                    margin-bottom: 8px;
+                }
+                .border-split .left,
+                .border-split .right {
+                    width: 49%;
+                }
+                .border-split .right {
+                    min-height: 25px;
+                }
+                    .border-split .left {
+  border-right: 1px solid #000;
+  padding-right: 8px;
+}
+
+                /* Signature Table (The four signing blocks) */
+                .sign-table {
+                    border: none;
+                    margin-top: 10px;
+                    table-layout: fixed;
+                }
+                .sign-table td {
+                    border: none;
+                    text-align: center;
+                    padding-top: 5px;
+                    vertical-align: top;
+                    line-height: 1.4;
+                }
+                .sign-line {
+                    border-bottom: 1px solid #000;
+                    display: block;
+                    width: 90%;
+                    margin: 0 auto 3px auto;
+                }
+                .sign-label {
+                    font-size: 10px;
+                }
+                
+                /* Risk Analysis Section Styles */
+                .risk-analysis {
+                    border-top: 1px solid #000;
+                    padding-top: 5px;
+                }
+                .risk-analysis table {
+                    margin-top: 5px;
+                }
+                .risk-analysis th, .risk-analysis td {
+                    height: 18px;
+                    padding: 2px 4px;
+                }
+                .risk-analysis th {
+                    font-size: 10px;
+                    font-weight: normal;
+                }
+                .risk-analysis-row-1 td:nth-child(1) { width: 25%; }
+                .risk-analysis-row-1 td:nth-child(2) { width: 25%; }
+                .risk-analysis-row-1 td:nth-child(3) { width: 50%; }
+
+                .risk-analysis-row-3 th:nth-child(1) { width: 25%; }
+                .risk-analysis-row-3 th:nth-child(2) { width: 25%; }
+                .risk-analysis-row-3 th:nth-child(3) { width: 25%; }
+                .risk-analysis-row-3 th:nth-child(4) { width: 25%; }
+
+                .risk-analysis-row-4 td {
+                    height: 30px;
+                }
+                
+                .placeholder-line {
+                    border-bottom: 1px solid #000; 
+                    display: inline-block;
+                    min-width: 100px;
+                    vertical-align: bottom;
+                }
+                .fill-line {
+                    border-bottom: 1px solid #000;
+                    display: inline-block;
+                    width: 95%; 
+                }
+                @media print {
+                    #backToAppBtn { display: none !important; }
+                }
+
+            </style>
+
+            <div id="print-area">
+                <header>
+                    <div class="header-flex">
+                        <div class="logo-left">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0Xc228_zSp0Uk3xtCqLZvDiyUYgYeIkvXTg&s" alt="Logo">
+                        </div>
+                        <div class="header-title">
+                            <h3><strong>General First Food Services SAS</strong></h3>
+                            <h4><strong>Purchase Requisition Form</strong></h4>
+                        </div>
+                    </div>
+                </header>
+
+                <main>
+                    <div class="section">
+                        <table>
+                            <tr>
+                                <td style="width: 25%;">Date: <strong>${dateLabel}</strong></td>
+                                <td style="width: 25%;">PR no.: <strong>${prNumber}</strong></td>
+                                <td style="width: 15%;">OPEX: ☐</td>
+                                <td style="width: 15%;">MR no.: <span class="placeholder-line">……………..</span></td>
+                                <td style="width: 15%;">CAPEX: ☐</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <strong>User Information</strong>
+                        <table>
+                            <tr>
+                                <td style="width: 33%;">Employee name: <span class="placeholder-line" style="width: 60%;"></span></td>
+                                <td style="width: 33%;">Department: <span class="placeholder-line" style="width: 60%;"></span></td>
+                                <td style="width: 33%;">Location: <span class="placeholder-line" style="width: 60%;"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <strong>Please order the following item(s):</strong>
+                        <table class="item-table">
+                            <thead>
+                                <tr>
+                                    <th>S. No.</th>
+                                    <th>Item code</th>
+                                    <th>Item description</th>
+                                    <th>Item category</th>
+                                    <th>Quantity required</th>
+                                    <th>Unit of measurement</th>
+                                    <th>Date by when item is needed</th>
+                                    <th>Estimated price (MAD)</th>
+                                    <th>Estimated Total cost (MAD)</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows + emptyRows + footerRow}</tbody>
+                        </table>
+                        <em>*Please enclose the details of the above items in the form of attached sheet along with this form (if applicable)</em>
+                    </div>
+
+                    <div class="section border-split">
+                        <div class="left">
+                            <strong>Deliver item to (address):</strong><br>Siege
+                        </div>
+                        <div class="right">
+                            <strong>Remarks, if any:</strong><br>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <table class="sign-table">
+                            <tr>
+                                <td>
+                                    Requested by: <span class="sign-line"></span><br>
+                                    <span class="sign-label"></span>
+                                </td>
+                                <td>
+                                    Approved by: <span class="sign-line"></span><br>
+                                    <span class="sign-label">(Purchase Manager)</span>
+                                </td>
+                                <td>
+                                    Reviewed by: <span class="sign-line"></span><br>
+                                    <span class="sign-label">(Finance Manager)</span>
+                                </td>
+                                <td>
+                                    Approved by: <span class="sign-line"></span><br>
+                                    <span class="sign-label">(General Manager)</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    
+                </main>
+            </div>
+        `;
+
+        // --- Print Execution Logic (Kept from original script) ---
+        printView.innerHTML = requisitionHTML;
+        mainApp.classList.add('d-none');
+        printView.classList.remove('print-only');
+        setTimeout(() => window.print(), 500);
+    });
+
+    backToAppBtn.addEventListener('click', () => {
+        printView.classList.add('print-only');
+        mainApp.classList.remove('d-none');
+    });
+
+    // Assumes renderPurchases() is a function needed for the main application view
+    if (typeof renderPurchases === 'function') {
+        renderPurchases();
+    }
+});
+
+ </script>
+
+
+
+<script>
+// 🎨 Toast Popup Function (Reusable)
+function showToast(message, type = "success") {
+  const toastContainer = document.getElementById("toastContainer");
+
+  const icons = {
+    success: "✅",
+    error: "❌",
+    info: "ℹ️"
+  };
+
+  const bgClass = {
+    success: "bg-success",
+    error: "bg-danger",
+    info: "bg-info"
+  };
+
+  const toast = document.createElement("div");
+  toast.className = `toast align-items-center text-white ${bgClass[type]} border-0 shadow-lg mb-3 rounded-3 animate__animated animate__fadeInUp`;
+  toast.setAttribute("role", "alert");
+  toast.setAttribute("aria-live", "assertive");
+  toast.setAttribute("aria-atomic", "true");
+
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body fw-semibold fs-6">${icons[type]} ${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
+  bsToast.show();
+
+  toast.addEventListener("hidden.bs.toast", () => toast.remove());
+}
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+</body>
+</html>
