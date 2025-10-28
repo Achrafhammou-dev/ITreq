@@ -114,7 +114,7 @@
 <div class="container-fluid">
     <div id="main-app" class="row">
         <div class="col-lg-11 mx-auto">
-            <h1 class="text-center my-4 fw-bold text-dark-emphasis">👑 IT Department Purchase Manager </h1>
+            <h1 class="text-center my-4 fw-bold text-dark-emphasis">IT Department Purchase Manager </h1>
             <p class="text-center mb-5 text-muted">Effortlessly track and manage all IT equipment and service acquisitions for Burger King.</p>
 
             <div class="card mb-5">
@@ -130,7 +130,7 @@
                             <input type="number" class="form-control" id="quantity" min="1" value="1" required>
                         </div>
                         <div class="col-md-3">
-                            <label for="unit-cost" class="form-label fw-bold">Unit Cost ($)</label>
+                            <label for="unit-cost" class="form-label fw-bold">Unit Cost (Mad)</label>
                             <input type="number" class="form-control" id="unit-cost" min="0" step="0.01" value="0.00" required>
                         </div>
                         <div class="col-md-6">
@@ -138,8 +138,8 @@
                             <input type="text" class="form-control" id="location" placeholder="e.g., Burger King BD Anfa" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="recipient" class="form-label fw-bold">Recipient (To Whom)</label>
-                            <input type="text" class="form-control" id="recipient" placeholder="e.g., Mr. Abdessamad" required>
+                            <label for="recipient" class="form-label fw-bold">Recipient (To Who)</label>
+                            <input type="text" class="form-control" id="recipient" placeholder="e.g., Mr. , Manager" required>
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-custom w-100 mt-2">➕ Add Purchase</button>
@@ -174,8 +174,8 @@
                             <tr>
                                 <th>Item</th>
                                 <th class="text-end">Qty</th>
-                                <th class="text-end">Unit Cost ($)</th>
-                                <th class="text-end">Total Cost ($)</th>
+                                <th class="text-end">Unit Cost (Mad)</th>
+                                <th class="text-end">Total Cost (Mad)</th>
                                 <th>Location</th>
                                 <th>Recipient</th>
                                 <th>Date</th>
@@ -227,8 +227,8 @@
                     <tr>
                         <th class="bg-light text-start">Item Name</th>
                         <th class="text-end bg-light">Quantity</th>
-                        <th class="text-end bg-light">Unit Cost ($)</th>
-                        <th class="text-end bg-light">Total ($)</th>
+                        <th class="text-end bg-light">Unit Cost (Mad)</th>
+                        <th class="text-end bg-light">Total (Mad)</th>
                     </tr>
                 </thead>
                 <tbody id="print-item-detail">
@@ -236,7 +236,7 @@
             </table>
             
             <div class="text-end fw-bold fs-5 p-2" style="background-color: var(--bk-yellow);">
-                <p class="mb-0">Total Cost: <span id="print-grand-total"></span> $</p>
+                <p class="mb-0">Total Cost: <span id="print-grand-total"></span> Mad</p>
             </div>
             
             <div class="mt-5 row">
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToAppBtn = document.getElementById('back-to-app');
 
     // ✅ Apps Script URL
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyF-y5JJhYw0Ejmel5LcPMWdRyIovjoqKvL-uFteXxwr_KFJUopiv0OdL_7tPobXCqC/exec"; 
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxRXuHcrTYC312oaUKm56nZ4xqKGmJZLT7nP1hYwWCMt9HIeV3hUdF61rtLULK2qacu/exec"; 
 
     let allPurchases = [];
 
