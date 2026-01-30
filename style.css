@@ -1,0 +1,244 @@
+
+    :root {
+        /* Brand Colors */
+        --bk-red: #D62300;       /* Official BK Red */
+        --bk-red-hover: #b51d00;
+        --bk-orange: #F58023;    /* Secondary Accent */
+        --bk-tan: #FBEAD2;       /* Soft Background */
+        --bk-brown: #502314;     /* Dark Text */
+        
+        /* Modern UI Palette */
+        --surface-light: #ffffff;
+        --surface-dim: #f8f9fa;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --border-color: #e9ecef;
+        
+        /* Shadows & Transitions */
+        --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+        --shadow-hover: 0 1rem 3rem rgba(0,0,0,.175);
+        --transition-base: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background-color: #f4f6f8; /* Neutral Modern Grey */
+        color: var(--text-primary);
+        -webkit-font-smoothing: antialiased;
+        padding-bottom: 60px;
+    }
+
+    /* =========================================
+       2. MODERN UI COMPONENTS (Screen Only)
+       ========================================= */
+    
+    /* Navbar Customization */
+    .navbar {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    /* Cards with Hover Lift Effect */
+    .card {
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.04);
+        transition: var(--transition-base);
+    }
+    
+    .card-hover-effect:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover) !important;
+    }
+
+    /* Form Controls */
+    .form-control {
+        border-radius: 10px;
+        padding: 1rem 0.75rem;
+        font-weight: 500;
+        transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus {
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(214, 35, 0, 0.15); /* Red Glow */
+    }
+    
+    /* Floating Label Adjustments */
+    .form-floating > label {
+        padding-left: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    /* Custom Buttons */
+    .btn-animate {
+        border-radius: 12px;
+        transition: var(--transition-base);
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-animate:active {
+        transform: scale(0.98);
+    }
+
+    .btn-danger {
+        background-color: var(--bk-red);
+        border: none;
+    }
+    .btn-danger:hover {
+        background-color: var(--bk-red-hover);
+        box-shadow: 0 4px 15px rgba(214, 35, 0, 0.3);
+    }
+
+    /* Table Styling */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
+    }
+    
+    .table th {
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.75rem;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid var(--border-color);
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .table tbody tr {
+        transition: background-color 0.2s;
+    }
+    .table tbody tr:hover {
+        background-color: rgba(251, 234, 210, 0.3); /* Slight Tan Highlight */
+    }
+
+    /* =========================================
+       3. PRINT VIEW & DOCUMENT STYLES
+       (Strict Isolation for A4 Landscape)
+       ========================================= */
+    
+    /* Hide Print View by default on screen */
+    #print-view {
+        display: none; 
+    }
+
+    /* When the .d-none class is removed via JS for printing preview */
+    #print-view:not(.d-none) {
+        display: block !important;
+        background: white;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 9999;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    /* --- ACTUAL PRINT MEDIA QUERY --- */
+    @media print {
+        /* Hide UI Elements */
+        nav, .container-fluid, .toast-container, .d-print-none, #back-to-app {
+            display: none !important;
+        }
+
+        /* Reset Body for Print */
+        body, html {
+            background-color: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100%;
+            width: 100%;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Show Print Area */
+        #print-view, #print-view * {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        #print-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            overflow: visible;
+        }
+
+        /* --- Document Specific Styling (from original) --- */
+        /* Re-implementing the specific table styles for the form */
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        .requisition-order {
+            width: 100%;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .logo-left img { width: 70px; }
+        .header-title { text-align: center; flex: 1; }
+        .header-title h3 { margin: 0 0 5px 0; font-size: 18px; font-weight: bold; }
+        .header-title h4 { margin: 0; font-size: 14px; font-weight: bold; }
+
+        /* Data Tables for Print */
+        table.print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            table-layout: fixed;
+        }
+        table.print-table th, table.print-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            font-size: 11px;
+            text-align: left;
+            height: 20px;
+        }
+        table.print-table th {
+            background-color: #e0e0e0 !important; /* Grey header */
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Footer Signatures */
+        .sign-table { width: 100%; margin-top: 20px; border: none; }
+        .sign-table td { border: none; text-align: center; vertical-align: top; padding: 10px; }
+        .sign-line { border-bottom: 1px solid #000; width: 80%; margin: 0 auto; display: block; margin-bottom: 5px; }
+
+        /* Helpers */
+        .text-end { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        .fw-bold { font-weight: bold !important; }
+        .border-split { display: flex; border: 1px solid #000; margin-bottom: 10px; }
+        .border-split .left { width: 50%; border-right: 1px solid #000; padding: 5px; }
+        .border-split .right { width: 50%; padding: 5px; }
+    }

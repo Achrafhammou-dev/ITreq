@@ -4,881 +4,541 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IT Purchase Manager - Burger King</title>
+    
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s" type="image/x-icon">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<!-- Bootstrap JS (for toasts) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
         :root {
-            --bk-red: #e57373;
-            --bk-red-hover: #d32f2f;
-            --bk-yellow: #ffbe0f;
-            --font-inter: 'Inter', sans-serif;
+            --bk-red: #D62300;
+            --bk-red-hover: #b51d00;
+            --bk-orange: #F58023;
+            --text-primary: #2d3436;
+            --bg-light: #f4f7f6;
         }
+
         body {
-            background: #f0f2f5;
-            font-family: var(--font-inter);
-            color: #333;
-            padding-bottom: 50px; /* Space for the bottom */
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            padding-bottom: 50px;
         }
-        .container-fluid {
-            padding-top: 2rem;
+
+        /* --- Modern Navbar --- */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #eee;
         }
+
+        /* --- Cards & Forms --- */
         .card {
-            border-radius: 1rem;
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.08);
-            transition: box-shadow 0.3s ease;
-            background-color: white;
-            padding: 1.5rem;
             border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .card:hover {
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
+
+        .form-floating > .form-control {
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            background-color: #fcfcfc;
+        }
+        .form-floating > .form-control:focus {
+            border-color: var(--bk-red);
+            box-shadow: 0 0 0 4px rgba(214, 35, 0, 0.1);
+        }
+
+        /* --- Buttons --- */
         .btn-custom {
             background-color: var(--bk-red);
-            border: none;
             color: white;
+            border-radius: 10px;
             font-weight: 600;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
+            padding: 12px;
+            border: none;
+            transition: all 0.2s;
         }
         .btn-custom:hover {
             background-color: var(--bk-red-hover);
-            color: white;
+            transform: scale(0.98);
         }
-        .table-custom {
-            border-radius: 0.75rem;
-            overflow: hidden;
+
+        /* --- Table Styling --- */
+        .table thead th {
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #636e72;
+            background-color: #f9f9f9;
+            border-bottom: 2px solid #eee;
+            padding: 15px 10px;
         }
-        .table-custom th {
-            background-color: #f5f5f5;
-            color: #555;
-            font-weight: 600;
-            border-bottom: 2px solid #ddd;
-        }
-        .table-custom td, .table-custom th {
-            border-color: #e0e0e0;
+        .table tbody td {
             vertical-align: middle;
+            padding: 15px 10px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 14px;
         }
-        .requisition-order {
-            padding: 2.5rem;
-            max-width: 800px;
-            margin: auto;
-            border: 2px solid #ccc;
-            border-radius: 1rem;
-            background-color: #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .table tbody tr:hover {
+            background-color: #fff8f0;
         }
-        .logo {
-            max-width: 70px;
-        }
-        .grand-total-footer {
-            background-color: var(--bk-yellow);
-            color: #333;
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-        .print-only {
+
+        /* --- Print View (Hidden on Screen) --- */
+        #print-view {
             display: none;
         }
+        
         @media print {
             body * {
                 visibility: hidden;
             }
-            .requisition-order, .requisition-order * {
+            #print-view, #print-view * {
                 visibility: visible;
+                display: block;
             }
-            .requisition-order {
+            #print-view {
                 position: absolute;
-                left: 0;
                 top: 0;
+                left: 0;
                 width: 100%;
-                border: none;
-                box-shadow: none;
+                background: white;
             }
-            .d-print-none {
-                display: none !important;
-            }
+            /* Reset strict print styles */
+            .btn, .no-print { display: none !important; }
+            
+            /* Official Document Styles */
+            .requisition-order { font-family: Arial, sans-serif; font-size: 11px; color: black; width: 100%; }
+            .header-flex { display: flex; align-items: center; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .logo-img { width: 70px; margin-right: 20px; }
+            .header-text { flex-grow: 1; text-align: center; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 4px; font-size: 11px; }
+            .print-table th { background-color: #e0e0e0 !important; font-weight: bold; text-align: center; }
+            .sign-box { display: flex; justify-content: space-between; margin-top: 30px; }
+            .sign-col { text-align: center; width: 23%; }
+            .sign-line { border-bottom: 1px solid #000; height: 30px; margin-bottom: 5px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div id="main-app" class="row">
-        <div class="col-lg-11 mx-auto">
-            <h1 class="text-center my-4 fw-bold text-dark-emphasis">IT Department Purchase Manager </h1>
-            <p class="text-center mb-5 text-muted">Effortlessly track and manage all IT equipment and service acquisitions for Burger King.</p>
+    <nav class="navbar sticky-top animate__animated animate__fadeInDown">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s" alt="Logo" width="40" height="40" class="rounded-circle">
+                <div>
+                    <h6 class="mb-0 fw-bold" style="font-family: 'Poppins', sans-serif;">IT Manager</h6>
+                    <small class="text-muted" style="font-size: 11px;">Burger King Operations</small>
+                </div>
+            </a>
+            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">
+                <i class="bi bi-shield-check me-1"></i> Secure
+            </span>
+        </div>
+    </nav>
 
-            <div class="card mb-5">
-                <form id="purchase-form">
-                    <h2 class="h5 mb-4 fw-bold text-dark-emphasis">Add a New Purchase</h2>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="item-name" class="form-label fw-bold">Item Name</label>
-                            <input type="text" class="form-control" id="item-name" placeholder="e.g., POS Terminal, Network Switch" required>
+    <div class="container py-4" id="main-app">
+        
+        <div class="text-center mb-5 animate__animated animate__fadeInUp">
+            <h1 class="fw-bold mb-2" style="font-family: 'Poppins', sans-serif;">Purchase Requisitions</h1>
+            <p class="text-muted">Manage IT assets, track costs, and print official orders.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 animate__animated animate__fadeInLeft animate__delay-1s">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4 text-danger">
+                            <i class="bi bi-plus-circle-fill fs-4 me-2"></i>
+                            <h5 class="fw-bold mb-0">New Entry</h5>
                         </div>
-                        <div class="col-md-3">
-                            <label for="quantity" class="form-label fw-bold">Quantity</label>
-                            <input type="number" class="form-control" id="quantity" min="1" value="1" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="unit-cost" class="form-label fw-bold">Unit Cost (Mad)</label>
-                            <input type="number" class="form-control" id="unit-cost" min="0" step="0.01" value="0.00" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="location" class="form-label fw-bold">Location (Where)</label>
-                            <input type="text" class="form-control" id="location" placeholder="e.g., Burger King BD Anfa" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="recipient" class="form-label fw-bold">Recipient (To Who)</label>
-                            <input type="text" class="form-control" id="recipient" placeholder="e.g., Mr. , Manager" required>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-custom w-100 mt-2">➕ Add Purchase</button>
-                        </div>
+                        
+                        <form id="purchase-form">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="item-name" placeholder="Item" required>
+                                        <label>Item Name</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="quantity" placeholder="Qty" value="1" min="1" required>
+                                        <label>Quantity</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="unit-cost" placeholder="Cost" step="0.01" required>
+                                        <label>Cost (MAD)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="location" placeholder="Location" required>
+                                        <label>Location (Branch)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="recipient" placeholder="Recipient" required>
+                                        <label>Recipient (To Who)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-custom w-100 shadow-sm">
+                                        <i class="bi bi-save2-fill me-2"></i> Save Purchase
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
-            
-            <div class="card">
-                <h2 class="h5 mb-4 fw-bold text-dark-emphasis">Purchase History</h2>
-                
-                <div class="card p-3 mb-4 bg-light shadow-sm">
-                    <h3 class="h6 fw-bold text-primary">Filter by Date Range 📅</h3>
-                    <div class="row g-3">
-                        <div class="col-md-5">
-                            <label for="start-date" class="form-label visually-hidden">Start Date</label>
-                            <input type="date" id="start-date" class="form-control" title="Start Date">
+
+            <div class="col-lg-8 animate__animated animate__fadeInRight animate__delay-1s">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-list-task me-2 text-warning"></i>History</h5>
+                            <div class="btn-group">
+                                <button id="btn-excel" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i> Excel</button>
+                                <button id="btn-print-view" class="btn btn-sm btn-outline-dark"><i class="bi bi-printer me-1"></i> Print</button>
+                            </div>
                         </div>
-                        <div class="col-md-5">
-                            <label for="end-date" class="form-label visually-hidden">End Date</label>
-                            <input type="date" id="end-date" class="form-control" title="End Date">
+
+                        <div class="bg-light p-3 rounded-3 mb-3 border">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="small text-muted fw-bold">Start Date</label>
+                                    <input type="date" id="start-date" class="form-control form-control-sm border-0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-muted fw-bold">End Date</label>
+                                    <input type="date" id="end-date" class="form-control form-control-sm border-0">
+                                </div>
+                                <div class="col-md-4 d-flex gap-2">
+                                    <button id="btn-filter" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
+                                    <button id="btn-clear" class="btn btn-white btn-sm border"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <button id="filter-btn" class="btn btn-primary w-100">Apply Filter</button>
+
+                        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                            <table class="table table-hover mb-0">
+                                <thead class="sticky-top">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-end">Qty</th>
+                                        <th class="text-end">Cost</th>
+                                        <th class="text-end">Total</th>
+                                        <th>Location</th>
+                                        <th>Date</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchase-list">
+                                    </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3 p-3 bg-warning bg-opacity-10 rounded-3 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark">Grand Total (MAD):</span>
+                            <span id="grand-total" class="fs-4 fw-bold text-dark">0.00</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover table-custom">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th class="text-end">Qty</th>
-                                <th class="text-end">Unit Cost (Mad)</th>
-                                <th class="text-end">Total Cost (Mad)</th>
-                                <th>Location</th>
-                                <th>Recipient</th>
-                                <th>Date</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="purchase-list">
-                            </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="3" class="text-end grand-total-footer">Grand Total:</th>
-                                <th id="grand-total" class="text-end grand-total-footer">0.00</th>
-                                <th colspan="4" class="grand-total-footer"></th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                
-                <div class="d-flex justify-content-between mt-4">
-                    <button id="download-excel" class="btn btn-success">⬇️ Download as Excel</button>
-                   <button id="print-requisition" class="btn btn-outline-dark">🖨️ Print Requisition</button>
-                    <button id="clear-filter" class="btn btn-warning">🔄 Clear Filter</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="print-view" class="print-only">
-        <div class="requisition-order">
-            <div class="text-center mb-4">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0Xc228_zSp0Uk3xtCqLZvDiyUYgYeIkvXTg&s" alt="Burger King Logo" class="logo">
-                <h2 class="mt-2 mb-0 fw-bold text-danger">Requisition Order</h2>
-                <p class="text-muted">IT Department</p>
-            </div>
-            <hr>
-            <div class="row mb-3">
-                <div class="col-6">
-                    <strong>Requisition Date:</strong> <span id="req-date" class="fw-normal"></span>
-                </div>
-                <div class="col-6 text-end">
-                    <strong>Reference ID:</strong> <span id="req-id" class="fw-normal">IT-REQ-001</span>
+    <div id="print-view">
+        <div class="requisition-order p-4">
+            <div class="header-flex">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s" class="logo-img" alt="Logo">
+                <div class="header-text">
+                    <h3 style="margin:0; font-weight:bold; font-size:18px;">General First Food Services SAS</h3>
+                    <h4 style="margin:5px 0 0 0; font-size:14px;">Purchase Requisition Form</h4>
                 </div>
             </div>
-            <p class="fw-bold mb-1">Location: <span id="print-location" class="fw-normal text-primary"></span></p>
-            <p class="fw-bold">Recipient: <span id="print-recipient" class="fw-normal text-primary"></span></p>
-            
-            <table class="table table-bordered mb-4">
+
+            <table style="width:100%; margin-bottom:10px;">
+                <tr>
+                    <td width="33%">Date: <strong id="print-date"></strong></td>
+                    <td width="33%">PR No.: <strong id="print-pr"></strong></td>
+                    <td width="33%">Ref: IT-REQ</td>
+                </tr>
+            </table>
+
+            <table class="print-table">
                 <thead>
                     <tr>
-                        <th class="bg-light text-start">Item Name</th>
-                        <th class="text-end bg-light">Quantity</th>
-                        <th class="text-end bg-light">Unit Cost (Mad)</th>
-                        <th class="text-end bg-light">Total (Mad)</th>
+                        <th width="5%">No.</th>
+                        <th width="40%">Description & Details</th>
+                        <th width="10%">Qty</th>
+                        <th width="10%">Unit</th>
+                        <th width="15%">Unit Cost (MAD)</th>
+                        <th width="20%">Total (MAD)</th>
                     </tr>
                 </thead>
-                <tbody id="print-item-detail">
+                <tbody id="print-tbody">
                     </tbody>
             </table>
-            
-            <div class="text-end fw-bold fs-5 p-2" style="background-color: var(--bk-yellow);">
-                <p class="mb-0">Total Cost: <span id="print-grand-total"></span> Mad</p>
-            </div>
-            
-            <div class="mt-5 row">
-                <div class="col-6">
-                    <p class="mb-0">Requested by:</p>
-                    <div class="mt-5 text-center">
-                        <div style="border-top: 1px solid #000; display: inline-block; width: 200px;"></div>
-                        <p class="mt-1">IT Purchase Manager</p>
-                    </div>
+
+            <div class="sign-box">
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Requested By</strong><br>IT Manager
                 </div>
-                <div class="col-6">
-                    <p class="mb-0">Authorized by:</p>
-                    <div class="mt-5 text-center">
-                        <div style="border-top: 1px solid #000; display: inline-block; width: 200px;"></div>
-                        <p class="mt-1">Operations Director</p>
-                    </div>
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Approved By</strong><br>Purchase Manager
+                </div>
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Reviewed By</strong><br>Finance Manager
+                </div>
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Approved By</strong><br>General Manager
                 </div>
             </div>
-            
-            <button onclick="window.print()" class="btn btn-custom w-100 d-print-none mt-4">🖨️ Print Requisition</button>
-            <button id="back-to-app" class="btn btn-secondary w-100 d-print-none mt-2">⬅️ Back to App</button>
+
+            <div class="no-print mt-4 text-center">
+                <button onclick="window.print()" class="btn btn-primary btn-lg">🖨️ Print Now</button>
+                <button onclick="document.getElementById('print-view').style.display='none'; document.getElementById('main-app').style.display='block';" class="btn btn-secondary btn-lg">⬅️ Back</button>
+            </div>
         </div>
     </div>
-</div>
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-
-<!-- ✅ Core Initialization -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Configuration & Elements ---
-    const form = document.getElementById('purchase-form');
-    const purchaseList = document.getElementById('purchase-list');
-    const grandTotalDisplay = document.getElementById('grand-total');
-    const downloadExcelBtn = document.getElementById('download-excel');
-    const filterBtn = document.getElementById('filter-btn');
-    const clearFilterBtn = document.getElementById('clear-filter');
-    const startDateInput = document.getElementById("start-date");
-    const endDateInput = document.getElementById("end-date");
-    const mainApp = document.getElementById('main-app');
-    const printView = document.getElementById('print-view');
-    const backToAppBtn = document.getElementById('back-to-app');
-
-    // ✅ Apps Script URL
-    const scriptURL = "https://script.google.com/macros/s/AKfycbxRXuHcrTYC312oaUKm56nZ4xqKGmJZLT7nP1hYwWCMt9HIeV3hUdF61rtLULK2qacu/exec"; 
-
-    let allPurchases = [];
-
-    // Store globals for other scripts
-    window.purchaseApp = {
-        form,
-        purchaseList,
-        grandTotalDisplay,
-        downloadExcelBtn,
-        filterBtn,
-        clearFilterBtn,
-        startDateInput,
-        endDateInput,
-        mainApp,
-        printView,
-        backToAppBtn,
-        scriptURL,
-        allPurchases
-    };
-});
-</script>
-
-<!-- ✅ Fetch Purchases -->
-<script>
-async function fetchPurchases() {
-    const { scriptURL } = window.purchaseApp;
-    try {
-        const res = await fetch(scriptURL);
-        const data = await res.json();
-        window.purchaseApp.allPurchases = data.map(p => {
-            p.Quantity = parseFloat(p.Quantity);
-            p["Unit Cost ($)"] = parseFloat(p["Unit Cost ($)"]);
-            p["Total Cost ($)"] = parseFloat(p["Total Cost ($)"]) || (p.Quantity * p["Unit Cost ($)"]);
-            return p;
+    <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxRXuHcrTYC312oaUKm56nZ4xqKGmJZLT7nP1hYwWCMt9HIeV3hUdF61rtLULK2qacu/exec";
+        
+        let allPurchases = [];
+        
+        // --- 1. Fetch Data on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPurchases();
+            
+            // Set Date for Print
+            document.getElementById('print-date').textContent = new Date().toLocaleDateString('fr-FR');
+            document.getElementById('print-pr').textContent = `PR-${Math.floor(Math.random()*10000)}`;
         });
-        return window.purchaseApp.allPurchases;
-    } catch (err) {
-        console.error("❌ Error fetching purchases:", err);
-        return [];
-    }
-}
-</script>
 
-<!-- ✅ Render Purchases -->
-<script>
-async function renderPurchases(filterStart = null, filterEnd = null) {
-    const { allPurchases: all, purchaseList, grandTotalDisplay } = window.purchaseApp;
-    let allPurchases = all;
-    if (allPurchases.length === 0) allPurchases = await fetchPurchases();
+        async function fetchPurchases() {
+            const tableBody = document.getElementById('purchase-list');
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-danger"></div><br>Loading Database...</td></tr>';
 
-    let filtered = allPurchases;
-    let grandTotal = 0;
-    purchaseList.innerHTML = '';
+            try {
+                const response = await fetch(scriptURL);
+                const data = await response.json();
+                
+                // Process Data
+                allPurchases = data.map(p => ({
+                    ...p,
+                    Quantity: parseFloat(p.Quantity) || 0,
+                    "Unit Cost ($)": parseFloat(p["Unit Cost ($)"]) || 0,
+                    "Total Cost ($)": parseFloat(p["Total Cost ($)"]) || 0
+                }));
 
-    if (filterStart && filterEnd) {
-        const start = new Date(filterStart);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(filterEnd);
-        end.setHours(23, 59, 59, 999);
-        filtered = allPurchases.filter(p => {
-            const purchaseDate = new Date(p["Date"]);
-            purchaseDate.setHours(0, 0, 0, 0);
-            return purchaseDate >= start && purchaseDate <= end;
-        });
-    }
+                renderTable(allPurchases);
+                showToast("✅ Connected To database successfully!");
 
-    if (filtered.length === 0) {
-        purchaseList.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No purchases found for the selected filter.</td></tr>';
-    }
+            } catch (error) {
+                console.error('Error:', error);
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger fw-bold">❌ Connection Failed. Check Internet or Script URL.</td></tr>';
+            }
+        }
 
-    filtered.forEach((purchase, index) => {
-        grandTotal += purchase["Total Cost ($)"];
-        const dateObj = new Date(purchase["Date"]);
-        const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${purchase["Item Name"]}</td>
-            <td class="text-end">${purchase.Quantity}</td>
-            <td class="text-end">${purchase["Unit Cost ($)"].toFixed(2)}</td>
-            <td class="text-end">${purchase["Total Cost ($)"].toFixed(2)}</td>
-            <td>${purchase.Location}</td>
-            <td>${purchase.Recipient}</td>
-            <td>${formattedDate}</td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary print-order-btn" data-index="${index}" data-row-index="${purchase.rowIndex}">View & Print</button>
-            </td>
-        `;
-        purchaseList.appendChild(row);
-    });
+        // --- 2. Render Table ---
+        function renderTable(data) {
+            const tbody = document.getElementById('purchase-list');
+            const totalEl = document.getElementById('grand-total');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
 
-    grandTotalDisplay.textContent = grandTotal.toFixed(2);
-}
-</script>
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No records found.</td></tr>';
+                totalEl.textContent = '0.00';
+                return;
+            }
 
-<!-- ✅ Submit Form -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const { form, scriptURL } = window.purchaseApp;
+            data.forEach((item, index) => {
+                grandTotal += item["Total Cost ($)"];
+                const date = new Date(item.Date).toLocaleDateString('fr-FR');
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="fw-bold text-dark">${item["Item Name"]}</td>
+                    <td class="text-end font-monospace">${item.Quantity}</td>
+                    <td class="text-end font-monospace">${item["Unit Cost ($)"].toFixed(2)}</td>
+                    <td class="text-end fw-bold font-monospace">${item["Total Cost ($)"].toFixed(2)}</td>
+                    <td><span class="badge bg-secondary bg-opacity-10 text-dark border">${item.Location}</span></td>
+                    <td class="small text-muted">${date}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-light text-primary border" onclick="printSingle(${index})"><i class="bi bi-printer"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const itemName = document.getElementById('item-name').value;
-        const quantity = document.getElementById('quantity').value;
-        const unitCost = document.getElementById('unit-cost').value;
-        const location = document.getElementById('location').value;
-        const recipient = document.getElementById('recipient').value;
+            totalEl.textContent = grandTotal.toFixed(2);
+        }
 
-        const newPurchase = {
-            itemName,
-            quantity: parseFloat(quantity),
-            unitCost: parseFloat(unitCost),
-            location,
-            recipient
-        };
+        // --- 3. Add Purchase Logic ---
+        const form = document.getElementById('purchase-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
 
-        const submitButton = e.submitter;
-        submitButton.disabled = true;
-        submitButton.textContent = 'Adding...';
-
-        try {
             const formData = new FormData();
-            Object.keys(newPurchase).forEach(key => formData.append(key, newPurchase[key]));
+            formData.append('itemName', document.getElementById('item-name').value);
+            formData.append('quantity', document.getElementById('quantity').value);
+            formData.append('unitCost', document.getElementById('unit-cost').value);
+            formData.append('location', document.getElementById('location').value);
+            formData.append('recipient', document.getElementById('recipient').value);
 
-            await fetch(scriptURL, {
-                method: "POST",
-                mode: "no-cors",
-                body: formData
+            try {
+                await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: formData });
+                showToast("✅ Purchase Added Successfully!");
+                form.reset();
+                fetchPurchases(); // Refresh list
+            } catch (error) {
+                showToast("❌ Error saving purchase", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // --- 4. Filtering ---
+        document.getElementById('btn-filter').addEventListener('click', () => {
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            
+            if(!start || !end) return showToast("⚠️ Select start and end dates", "error");
+
+            const sDate = new Date(start); sDate.setHours(0,0,0,0);
+            const eDate = new Date(end); eDate.setHours(23,59,59,999);
+
+            const filtered = allPurchases.filter(p => {
+                const pDate = new Date(p.Date);
+                return pDate >= sDate && pDate <= eDate;
             });
 
-            console.log("✅ Sent to Google Sheet successfully!");
-            window.purchaseApp.allPurchases = [];
-            await renderPurchases();
-            form.reset();
-            showToast("Purchase added successfully!", "success");
-        } catch (err) {
-            console.error("❌ Error sending to sheet:", err);
-            showToast("An error occurred while adding the purchase.", "error");
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = '➕ Add Purchase';
+            renderTable(filtered);
+            showToast(`Filtered: ${filtered.length} items found`);
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            renderTable(allPurchases);
+        });
+
+        // --- 5. Print Logic ---
+        document.getElementById('btn-print-view').addEventListener('click', () => {
+            // Check if filtering is active by checking input values
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            
+            let dataToPrint = allPurchases;
+            
+            if (start && end) {
+                const sDate = new Date(start); sDate.setHours(0,0,0,0);
+                const eDate = new Date(end); eDate.setHours(23,59,59,999);
+                dataToPrint = allPurchases.filter(p => {
+                    const pDate = new Date(p.Date);
+                    return pDate >= sDate && pDate <= eDate;
+                });
+            }
+
+            preparePrint(dataToPrint);
+        });
+
+        function printSingle(index) {
+            preparePrint([allPurchases[index]]);
         }
-    });
-});
-</script>
 
-<!-- ✅ Filter & Clear Filter -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const { filterBtn, clearFilterBtn, startDateInput, endDateInput } = window.purchaseApp;
+        function preparePrint(data) {
+            const printBody = document.getElementById('print-tbody');
+            printBody.innerHTML = '';
+            let total = 0;
+            const MAX_ROWS = 12;
 
-    filterBtn.addEventListener("click", () => {
-        const start = startDateInput.value;
-        const end = endDateInput.value;
-        if (start && end) renderPurchases(start, end);
-        else showToast("Please select both a start and end date.", "info");
-
-    });
-
-    clearFilterBtn.addEventListener("click", () => {
-        startDateInput.value = "";
-        endDateInput.value = "";
-        renderPurchases();
-    });
-});
-</script>
-
- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-    // These variables assume the main application context (window.purchaseApp) still exists.
-    const { mainApp, printView, backToAppBtn, startDateInput, endDateInput } = window.purchaseApp;
-    const printBtn = document.getElementById('print-requisition');
-
-    printBtn.addEventListener('click', () => {
-        let filtered = window.purchaseApp.allPurchases;
-        const start = startDateInput.value;
-        const end = endDateInput.value;
-
-        // --- Data Filtering Logic (Kept from original script) ---
-        if (start && end) {
-            const s = new Date(start);
-            s.setHours(0, 0, 0, 0);
-            const e = new Date(end);
-            e.setHours(23, 59, 59, 999);
-            filtered = filtered.filter(p => {
-                const d = new Date(p["Date"]);
-                return d >= s && d <= e;
+            data.forEach((p, i) => {
+                total += p["Total Cost ($)"];
+                printBody.innerHTML += `
+                    <tr>
+                        <td style="text-align:center">${i+1}</td>
+                        <td><strong>${p["Item Name"]}</strong><br><small>(${p.Recipient} - ${p.Location})</small></td>
+                        <td style="text-align:center">${p.Quantity}</td>
+                        <td style="text-align:center">Unit</td>
+                        <td style="text-align:right">${p["Unit Cost ($)"].toFixed(2)}</td>
+                        <td style="text-align:right">${p["Total Cost ($)"].toFixed(2)}</td>
+                    </tr>
+                `;
             });
+
+            // Empty rows for A4 Layout
+            const emptyCount = Math.max(0, MAX_ROWS - data.length);
+            for(let j=0; j<emptyCount; j++) {
+                printBody.innerHTML += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>';
+            }
+
+            // Total Row
+            printBody.innerHTML += `
+                <tr>
+                    <td colspan="5" style="text-align:right; font-weight:bold; background:#eee;">GRAND TOTAL (MAD):</td>
+                    <td style="text-align:right; font-weight:bold; background:#eee;">${total.toFixed(2)}</td>
+                </tr>
+            `;
+
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('print-view').style.display = 'block';
         }
 
-        if (!filtered.length) {
-            alert("No purchases to print for the selected period.");
-            return;
+        // --- 6. Excel Export ---
+        document.getElementById('btn-excel').addEventListener('click', () => {
+            const ws = XLSX.utils.json_to_sheet(allPurchases);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Purchases");
+            XLSX.writeFile(wb, "BurgerKing_IT_Purchases.xlsx");
+        });
+
+        // --- 7. Toast Utility ---
+        function showToast(msg, type='success') {
+            const container = document.getElementById('toastContainer');
+            const bg = type === 'error' ? 'bg-danger' : 'bg-success';
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${bg} border-0 show`;
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
-
-        const today = new Date();
-        const dateLabel = today.toLocaleDateString('fr-FR');
-        const prNumber = `PR-${today.getFullYear()}-${String(Math.floor(Math.random() * 999)).padStart(3, '0')}`;
-        
-        // --- Dynamic Row Generation ---
-        const MAX_ROWS = 12; 
-        
-        const rows = filtered.map((p, i) => `
-            <tr style="height: 14px;">
-                <td>${i + 1}</td>
-                <td>${p["Item Code"] || " "}</td>
-                <td><span style="font-family: 'Times New Roman', Times, serif; font-weight: bold; font-size: 13px;">${p["Item Name"] || " "}</span>  (${p["Recipient"] || " "} ; ${p["Location"] || " "}) </td>
-                <td>${p["Category"] || " "}</td>
-                <td style="text-align:Center;" >${p.Quantity || 1}</td>
-                <td style="text-align:Center;" >${p["Unit"] || "pcs"}</td>
-                <td>${p["Date Needed"] || " "}</td>
-                <td style="text-align:right;" >${(p["Unit Cost ($)"] ).toFixed(2)}</td>
-                <td style="text-align:right;" >${p["Total Cost ($)"].toFixed(2)}</td>
-            </tr>
-        `).join('');
-const totalCostUSD = filtered.reduce((sum, p) => sum + (p["Total Cost ($)"] || 0), 0);
-const formattedTotalCost = totalCostUSD.toFixed(2);
-        const emptyRowsCount = Math.max(0, MAX_ROWS - filtered.length);
-        const emptyRows = Array.from({ length: emptyRowsCount }).map(() => `
-            <tr style="height: 16px;">
-                <td>&nbsp;</td><td></td><td></td><td></td>
-                <td></td><td></td><td></td><td></td><td></td>
-            </tr>
-        `).join('');
-
-        // Add the 'HT' footer row if the main content has data
-
-            const footerRow = filtered.length > 0 ? 
-    `<tr>
-        <td colspan="8" style="text-align: right; font-weight: bold;">Total Mad :</td>
-        <td style="text-align: right; font-weight: bold;">${formattedTotalCost} Dhs</td>
-    </tr>` : 
-    `<tr style="height: 16px;"><td colspan="9" style="text-align: right; font-weight: bold;"></td></tr>`;
-
-        // --- Requisition HTML Template (Updated for Fixed A4 Landscape Style) ---
-        const requisitionHTML = `
-            <style>
-                /* --- Print-Specific Styles --- */
-                @page {
-                    size: A4 landscape;
-                    margin: 10mm;
-                }
-
-                html, body {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    width: 100%;
-                    height: 100%;
-                    font-family: Arial, sans-serif;
-                    font-size: 11px;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                body * {
-                    visibility: hidden;
-                }
-                #print-area, #print-area * {
-                    visibility: visible;
-                }
-                #print-area {
-                background-color: white ;
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: auto;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                /* --- Header Section --- */
-                header {
-                    display: flex;
-                    align-items: center;
-                    border-bottom: 1px solid #000;
-                    padding-bottom: 5px;
-                    margin-bottom: 10px;
-                    flex-shrink: 0;
-                }
-                .header-flex {
-                    display: flex;
-                    align-items: center;
-                    width: 100%;
-                }
-                .logo-left {
-                    flex: 0 0 auto;
-                    text-align: left;
-                    margin-right: 15px;
-                }
-                .logo-left img {
-                    width: 70px;
-                    height: auto;
-                    display: block;
-                }
-                .header-title {
-                    flex: 1;
-                    text-align: center;
-                }
-                .header-title h3, .header-title h4 {
-                    margin: 0;
-                    line-height: 1.2;
-                }
-                .header-title h3 { font-size: 20px; margin-bottom:10px; }
-                .header-title h4 { font-size: 13px; margin-top : 10px; }
-
-                /* --- Main Content --- */
-                main {
-                    flex-grow: 1;
-                    padding-bottom: 10px;
-                }
-
-                .section {
-                    margin-bottom: 8px;
-                }
-
-                /* --- Table Styles --- */
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    table-layout: fixed;
-                    font-size: 11px;
-                }
-                th, td {
-                    border: 1px solid #000;
-                    padding: 3px 4px;
-                    text-align: left;
-                    height: 16px; /* Fixed height for consistent lines */
-                }
-                th {
-                    background: #bdbdbd;
-                    text-align: center;
-                    font-weight: bold;
-                }
-
-                /* Column Widths for Item Table (Adjusted for landscape A4) */
-                .item-table th:nth-child(1) { width: 4%; } /* S. No. */
-                .item-table th:nth-child(2) { width: 4%; } /* Item code */
-                .item-table th:nth-child(3) { width: 36%; } /* Item description */
-                .item-table th:nth-child(4) { width: 6%; } /* Item category */
-                .item-table th:nth-child(5) { width: 6%; } /* Qty */
-                .item-table th:nth-child(6) { width: 8%; } /* UOM */
-                .item-table th:nth-child(7) { width: 10%; } /* Date needed */
-                .item-table th:nth-child(8) { width: 13%; } /* Est. Price (MAD) */
-                .item-table th:nth-child(9) { width: 13%; } /* Total (MAD) */
-
-                /* Section for Delivery and Remarks (Split border box) */
-                .border-split {
-                    display: flex;
-                    justify-content: space-between;
-                    border: 1px solid #000;
-                    padding: 5px;
-                    margin-bottom: 8px;
-                }
-                .border-split .left,
-                .border-split .right {
-                    width: 49%;
-                }
-                .border-split .right {
-                    min-height: 25px;
-                }
-                    .border-split .left {
-  border-right: 1px solid #000;
-  padding-right: 8px;
-}
-
-                /* Signature Table (The four signing blocks) */
-                .sign-table {
-                    border: none;
-                    margin-top: 10px;
-                    table-layout: fixed;
-                }
-                .sign-table td {
-                    border: none;
-                    text-align: center;
-                    padding-top: 5px;
-                    vertical-align: top;
-                    line-height: 1.4;
-                }
-                .sign-line {
-                    border-bottom: 1px solid #000;
-                    display: block;
-                    width: 90%;
-                    margin: 0 auto 3px auto;
-                }
-                .sign-label {
-                    font-size: 10px;
-                }
-                
-                /* Risk Analysis Section Styles */
-                .risk-analysis {
-                    border-top: 1px solid #000;
-                    padding-top: 5px;
-                }
-                .risk-analysis table {
-                    margin-top: 5px;
-                }
-                .risk-analysis th, .risk-analysis td {
-                    height: 18px;
-                    padding: 2px 4px;
-                }
-                .risk-analysis th {
-                    font-size: 10px;
-                    font-weight: normal;
-                }
-                .risk-analysis-row-1 td:nth-child(1) { width: 25%; }
-                .risk-analysis-row-1 td:nth-child(2) { width: 25%; }
-                .risk-analysis-row-1 td:nth-child(3) { width: 50%; }
-
-                .risk-analysis-row-3 th:nth-child(1) { width: 25%; }
-                .risk-analysis-row-3 th:nth-child(2) { width: 25%; }
-                .risk-analysis-row-3 th:nth-child(3) { width: 25%; }
-                .risk-analysis-row-3 th:nth-child(4) { width: 25%; }
-
-                .risk-analysis-row-4 td {
-                    height: 30px;
-                }
-                
-                .placeholder-line {
-                    border-bottom: 1px solid #000; 
-                    display: inline-block;
-                    min-width: 100px;
-                    vertical-align: bottom;
-                }
-                .fill-line {
-                    border-bottom: 1px solid #000;
-                    display: inline-block;
-                    width: 95%; 
-                }
-                @media print {
-                    #backToAppBtn { display: none !important; }
-                }
-
-            </style>
-
-            <div id="print-area">
-                <header>
-                    <div class="header-flex">
-                        <div class="logo-left">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0Xc228_zSp0Uk3xtCqLZvDiyUYgYeIkvXTg&s" alt="Logo">
-                        </div>
-                        <div class="header-title">
-                            <h3><strong>General First Food Services SAS</strong></h3>
-                            <h4><strong>Purchase Requisition Form</strong></h4>
-                        </div>
-                    </div>
-                </header>
-
-                <main>
-                    <div class="section">
-                        <table>
-                            <tr>
-                                <td style="width: 25%;">Date: <strong>${dateLabel}</strong></td>
-                                <td style="width: 25%;">PR no.: <strong>${prNumber}</strong></td>
-                                <td style="width: 15%;">OPEX: ☐</td>
-                                <td style="width: 15%;">MR no.: <span class="placeholder-line">……………..</span></td>
-                                <td style="width: 15%;">CAPEX: ☐</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="section">
-                        <strong>User Information</strong>
-                        <table>
-                            <tr>
-                                <td style="width: 33%;">Employee name: <span class="placeholder-line" style="width: 60%;"></span></td>
-                                <td style="width: 33%;">Department: <span class="placeholder-line" style="width: 60%;"></span></td>
-                                <td style="width: 33%;">Location: <span class="placeholder-line" style="width: 60%;"></span></td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="section">
-                        <strong>Please order the following item(s):</strong>
-                        <table class="item-table">
-                            <thead>
-                                <tr>
-                                    <th>S. No.</th>
-                                    <th>Item code</th>
-                                    <th>Item description</th>
-                                    <th>Item category</th>
-                                    <th>Quantity required</th>
-                                    <th>Unit of measurement</th>
-                                    <th>Date by when item is needed</th>
-                                    <th>Estimated price (MAD)</th>
-                                    <th>Estimated Total cost (MAD)</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows + emptyRows + footerRow}</tbody>
-                        </table>
-                        <em>*Please enclose the details of the above items in the form of attached sheet along with this form (if applicable)</em>
-                    </div>
-
-                    <div class="section border-split">
-                        <div class="left">
-                            <strong>Deliver item to (address):</strong><br>Siege
-                        </div>
-                        <div class="right">
-                            <strong>Remarks, if any:</strong><br>
-                            
-                        </div>
-                    </div>
-                    
-                    <div class="section">
-                        <table class="sign-table">
-                            <tr>
-                                <td>
-                                    Requested by: <span class="sign-line"></span><br>
-                                    <span class="sign-label"></span>
-                                </td>
-                                <td>
-                                    Approved by: <span class="sign-line"></span><br>
-                                    <span class="sign-label">(Purchase Manager)</span>
-                                </td>
-                                <td>
-                                    Reviewed by: <span class="sign-line"></span><br>
-                                    <span class="sign-label">(Finance Manager)</span>
-                                </td>
-                                <td>
-                                    Approved by: <span class="sign-line"></span><br>
-                                    <span class="sign-label">(General Manager)</span>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    
-                </main>
-            </div>
-        `;
-
-        // --- Print Execution Logic (Kept from original script) ---
-        printView.innerHTML = requisitionHTML;
-        mainApp.classList.add('d-none');
-        printView.classList.remove('print-only');
-        setTimeout(() => window.print(), 500);
-    });
-
-    backToAppBtn.addEventListener('click', () => {
-        printView.classList.add('print-only');
-        mainApp.classList.remove('d-none');
-    });
-
-    // Assumes renderPurchases() is a function needed for the main application view
-    if (typeof renderPurchases === 'function') {
-        renderPurchases();
-    }
-});
-
- </script>
-
-
-
-<script>
-// 🎨 Toast Popup Function (Reusable)
-function showToast(message, type = "success") {
-  const toastContainer = document.getElementById("toastContainer");
-
-  const icons = {
-    success: "✅",
-    error: "❌",
-    info: "ℹ️"
-  };
-
-  const bgClass = {
-    success: "bg-success",
-    error: "bg-danger",
-    info: "bg-info"
-  };
-
-  const toast = document.createElement("div");
-  toast.className = `toast align-items-center text-white ${bgClass[type]} border-0 shadow-lg mb-3 rounded-3 animate__animated animate__fadeInUp`;
-  toast.setAttribute("role", "alert");
-  toast.setAttribute("aria-live", "assertive");
-  toast.setAttribute("aria-atomic", "true");
-
-  toast.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body fw-semibold fs-6">${icons[type]} ${message}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-  `;
-
-  toastContainer.appendChild(toast);
-
-  const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
-  bsToast.show();
-
-  toast.addEventListener("hidden.bs.toast", () => toast.remove());
-}
-</script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Toast Container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
-
+    </script>
 </body>
 </html>
