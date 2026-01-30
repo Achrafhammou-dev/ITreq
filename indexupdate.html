@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Purchase Manager - Burger King</title>
+    
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s" type="image/x-icon">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --bk-red: #D62300;
+            --bk-red-hover: #b51d00;
+            --bk-orange: #F58023;
+            --text-primary: #2d3436;
+            --bg-light: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            padding-bottom: 50px;
+        }
+
+        /* --- Modern Navbar --- */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #eee;
+        }
+
+        /* --- Cards & Forms --- */
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .form-floating > .form-control {
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            background-color: #fcfcfc;
+        }
+        .form-floating > .form-control:focus {
+            border-color: var(--bk-red);
+            box-shadow: 0 0 0 4px rgba(214, 35, 0, 0.1);
+        }
+
+        /* --- Buttons --- */
+        .btn-custom {
+            background-color: var(--bk-red);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 12px;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-custom:hover {
+            background-color: var(--bk-red-hover);
+            transform: scale(0.98);
+        }
+
+        /* --- Table Styling --- */
+        .table thead th {
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #636e72;
+            background-color: #f9f9f9;
+            border-bottom: 2px solid #eee;
+            padding: 15px 10px;
+        }
+        .table tbody td {
+            vertical-align: middle;
+            padding: 15px 10px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 14px;
+        }
+        .table tbody tr:hover {
+            background-color: #fff8f0;
+        }
+
+        /* --- Print View (Hidden on Screen) --- */
+        #print-view {
+            display: none;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-view, #print-view * {
+                visibility: visible;
+                display: block;
+            }
+            #print-view {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                background: white;
+            }
+            /* Reset strict print styles */
+            .btn, .no-print { display: none !important; }
+            
+            /* Official Document Styles */
+            .requisition-order { font-family: Arial, sans-serif; font-size: 11px; color: black; width: 100%; }
+            .header-flex { display: flex; align-items: center; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .logo-img { width: 70px; margin-right: 20px; }
+            .header-text { flex-grow: 1; text-align: center; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 4px; font-size: 11px; }
+            .print-table th { background-color: #e0e0e0 !important; font-weight: bold; text-align: center; }
+            .sign-box { display: flex; justify-content: space-between; margin-top: 30px; }
+            .sign-col { text-align: center; width: 23%; }
+            .sign-line { border-bottom: 1px solid #000; height: 30px; margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar sticky-top animate__animated animate__fadeInDown">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s" alt="Logo" width="40" height="40" class="rounded-circle">
+                <div>
+                    <h6 class="mb-0 fw-bold" style="font-family: 'Poppins', sans-serif;">IT Manager</h6>
+                    <small class="text-muted" style="font-size: 11px;">Burger King Operations</small>
+                </div>
+            </a>
+            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">
+                <i class="bi bi-shield-check me-1"></i> Secure
+            </span>
+        </div>
+    </nav>
+
+    <div class="container py-4" id="main-app">
+        
+        <div class="text-center mb-5 animate__animated animate__fadeInUp">
+            <h1 class="fw-bold mb-2" style="font-family: 'Poppins', sans-serif;">Purchase Requisitions</h1>
+            <p class="text-muted">Manage IT assets, track costs, and print official orders.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 animate__animated animate__fadeInLeft animate__delay-1s">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4 text-danger">
+                            <i class="bi bi-plus-circle-fill fs-4 me-2"></i>
+                            <h5 class="fw-bold mb-0">New Entry</h5>
+                        </div>
+                        
+                        <form id="purchase-form">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="item-name" placeholder="Item" required>
+                                        <label>Item Name</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="quantity" placeholder="Qty" value="1" min="1" required>
+                                        <label>Quantity</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="unit-cost" placeholder="Cost" step="0.01" required>
+                                        <label>Cost (MAD)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="location" placeholder="Location" required>
+                                        <label>Location (Branch)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="recipient" placeholder="Recipient" required>
+                                        <label>Recipient (To Who)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-custom w-100 shadow-sm">
+                                        <i class="bi bi-save2-fill me-2"></i> Save Purchase
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 animate__animated animate__fadeInRight animate__delay-1s">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-list-task me-2 text-warning"></i>History</h5>
+                            <div class="btn-group">
+                                <button id="btn-excel" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i> Excel</button>
+                                <button id="btn-print-view" class="btn btn-sm btn-outline-dark"><i class="bi bi-printer me-1"></i> Print</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-3 mb-3 border">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="small text-muted fw-bold">Start Date</label>
+                                    <input type="date" id="start-date" class="form-control form-control-sm border-0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-muted fw-bold">End Date</label>
+                                    <input type="date" id="end-date" class="form-control form-control-sm border-0">
+                                </div>
+                                <div class="col-md-4 d-flex gap-2">
+                                    <button id="btn-filter" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
+                                    <button id="btn-clear" class="btn btn-white btn-sm border"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                            <table class="table table-hover mb-0">
+                                <thead class="sticky-top">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-end">Qty</th>
+                                        <th class="text-end">Cost</th>
+                                        <th class="text-end">Total</th>
+                                        <th>Location</th>
+                                        <th>Date</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchase-list">
+                                    </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3 p-3 bg-warning bg-opacity-10 rounded-3 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark">Grand Total (MAD):</span>
+                            <span id="grand-total" class="fs-4 fw-bold text-dark">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-view">
+        <div class="requisition-order p-4">
+            <div class="header-flex">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s" class="logo-img" alt="Logo">
+                <div class="header-text">
+                    <h3 style="margin:0; font-weight:bold; font-size:18px;">General First Food Services SAS</h3>
+                    <h4 style="margin:5px 0 0 0; font-size:14px;">Purchase Requisition Form</h4>
+                </div>
+            </div>
+
+            <table style="width:100%; margin-bottom:10px;">
+                <tr>
+                    <td width="33%">Date: <strong id="print-date"></strong></td>
+                    <td width="33%">PR No.: <strong id="print-pr"></strong></td>
+                    <td width="33%">Ref: IT-REQ</td>
+                </tr>
+            </table>
+
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th width="5%">No.</th>
+                        <th width="40%">Description & Details</th>
+                        <th width="10%">Qty</th>
+                        <th width="10%">Unit</th>
+                        <th width="15%">Unit Cost (MAD)</th>
+                        <th width="20%">Total (MAD)</th>
+                    </tr>
+                </thead>
+                <tbody id="print-tbody">
+                    </tbody>
+            </table>
+
+            <div class="sign-box">
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Requested By</strong><br>IT Manager
+                </div>
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Approved By</strong><br>Purchase Manager
+                </div>
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Reviewed By</strong><br>Finance Manager
+                </div>
+                <div class="sign-col">
+                    <div class="sign-line"></div>
+                    <strong>Approved By</strong><br>General Manager
+                </div>
+            </div>
+
+            <div class="no-print mt-4 text-center">
+                <button onclick="window.print()" class="btn btn-primary btn-lg">🖨️ Print Now</button>
+                <button onclick="document.getElementById('print-view').style.display='none'; document.getElementById('main-app').style.display='block';" class="btn btn-secondary btn-lg">⬅️ Back</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxRXuHcrTYC312oaUKm56nZ4xqKGmJZLT7nP1hYwWCMt9HIeV3hUdF61rtLULK2qacu/exec";
+        
+        let allPurchases = [];
+        
+        // --- 1. Fetch Data on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPurchases();
+            
+            // Set Date for Print
+            document.getElementById('print-date').textContent = new Date().toLocaleDateString('fr-FR');
+            document.getElementById('print-pr').textContent = `PR-${Math.floor(Math.random()*10000)}`;
+        });
+
+        async function fetchPurchases() {
+            const tableBody = document.getElementById('purchase-list');
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-danger"></div><br>Loading Database...</td></tr>';
+
+            try {
+                const response = await fetch(scriptURL);
+                const data = await response.json();
+                
+                // Process Data
+                allPurchases = data.map(p => ({
+                    ...p,
+                    Quantity: parseFloat(p.Quantity) || 0,
+                    "Unit Cost ($)": parseFloat(p["Unit Cost ($)"]) || 0,
+                    "Total Cost ($)": parseFloat(p["Total Cost ($)"]) || 0
+                }));
+
+                renderTable(allPurchases);
+                showToast("✅ Connected To database successfully!");
+
+            } catch (error) {
+                console.error('Error:', error);
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger fw-bold">❌ Connection Failed. Check Internet or Script URL.</td></tr>';
+            }
+        }
+
+        // --- 2. Render Table ---
+        function renderTable(data) {
+            const tbody = document.getElementById('purchase-list');
+            const totalEl = document.getElementById('grand-total');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No records found.</td></tr>';
+                totalEl.textContent = '0.00';
+                return;
+            }
+
+            data.forEach((item, index) => {
+                grandTotal += item["Total Cost ($)"];
+                const date = new Date(item.Date).toLocaleDateString('fr-FR');
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="fw-bold text-dark">${item["Item Name"]}</td>
+                    <td class="text-end font-monospace">${item.Quantity}</td>
+                    <td class="text-end font-monospace">${item["Unit Cost ($)"].toFixed(2)}</td>
+                    <td class="text-end fw-bold font-monospace">${item["Total Cost ($)"].toFixed(2)}</td>
+                    <td><span class="badge bg-secondary bg-opacity-10 text-dark border">${item.Location}</span></td>
+                    <td class="small text-muted">${date}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-light text-primary border" onclick="printSingle(${index})"><i class="bi bi-printer"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            totalEl.textContent = grandTotal.toFixed(2);
+        }
+
+        // --- 3. Add Purchase Logic ---
+        const form = document.getElementById('purchase-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+            const formData = new FormData();
+            formData.append('itemName', document.getElementById('item-name').value);
+            formData.append('quantity', document.getElementById('quantity').value);
+            formData.append('unitCost', document.getElementById('unit-cost').value);
+            formData.append('location', document.getElementById('location').value);
+            formData.append('recipient', document.getElementById('recipient').value);
+
+            try {
+                await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: formData });
+                showToast("✅ Purchase Added Successfully!");
+                form.reset();
+                fetchPurchases(); // Refresh list
+            } catch (error) {
+                showToast("❌ Error saving purchase", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // --- 4. Filtering ---
+        document.getElementById('btn-filter').addEventListener('click', () => {
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            
+            if(!start || !end) return showToast("⚠️ Select start and end dates", "error");
+
+            const sDate = new Date(start); sDate.setHours(0,0,0,0);
+            const eDate = new Date(end); eDate.setHours(23,59,59,999);
+
+            const filtered = allPurchases.filter(p => {
+                const pDate = new Date(p.Date);
+                return pDate >= sDate && pDate <= eDate;
+            });
+
+            renderTable(filtered);
+            showToast(`Filtered: ${filtered.length} items found`);
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            renderTable(allPurchases);
+        });
+
+        // --- 5. Print Logic ---
+        document.getElementById('btn-print-view').addEventListener('click', () => {
+            // Check if filtering is active by checking input values
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            
+            let dataToPrint = allPurchases;
+            
+            if (start && end) {
+                const sDate = new Date(start); sDate.setHours(0,0,0,0);
+                const eDate = new Date(end); eDate.setHours(23,59,59,999);
+                dataToPrint = allPurchases.filter(p => {
+                    const pDate = new Date(p.Date);
+                    return pDate >= sDate && pDate <= eDate;
+                });
+            }
+
+            preparePrint(dataToPrint);
+        });
+
+        function printSingle(index) {
+            preparePrint([allPurchases[index]]);
+        }
+
+        function preparePrint(data) {
+            const printBody = document.getElementById('print-tbody');
+            printBody.innerHTML = '';
+            let total = 0;
+            const MAX_ROWS = 12;
+
+            data.forEach((p, i) => {
+                total += p["Total Cost ($)"];
+                printBody.innerHTML += `
+                    <tr>
+                        <td style="text-align:center">${i+1}</td>
+                        <td><strong>${p["Item Name"]}</strong><br><small>(${p.Recipient} - ${p.Location})</small></td>
+                        <td style="text-align:center">${p.Quantity}</td>
+                        <td style="text-align:center">Unit</td>
+                        <td style="text-align:right">${p["Unit Cost ($)"].toFixed(2)}</td>
+                        <td style="text-align:right">${p["Total Cost ($)"].toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            // Empty rows for A4 Layout
+            const emptyCount = Math.max(0, MAX_ROWS - data.length);
+            for(let j=0; j<emptyCount; j++) {
+                printBody.innerHTML += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>';
+            }
+
+            // Total Row
+            printBody.innerHTML += `
+                <tr>
+                    <td colspan="5" style="text-align:right; font-weight:bold; background:#eee;">GRAND TOTAL (MAD):</td>
+                    <td style="text-align:right; font-weight:bold; background:#eee;">${total.toFixed(2)}</td>
+                </tr>
+            `;
+
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('print-view').style.display = 'block';
+        }
+
+        // --- 6. Excel Export ---
+        document.getElementById('btn-excel').addEventListener('click', () => {
+            const ws = XLSX.utils.json_to_sheet(allPurchases);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Purchases");
+            XLSX.writeFile(wb, "BurgerKing_IT_Purchases.xlsx");
+        });
+
+        // --- 7. Toast Utility ---
+        function showToast(msg, type='success') {
+            const container = document.getElementById('toastContainer');
+            const bg = type === 'error' ? 'bg-danger' : 'bg-success';
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${bg} border-0 show`;
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
