@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Configuration ---
     const APP_CONFIG = {
-        scriptURL: "https://script.google.com/macros/s/AKfycbxRXuHcrTYC312oaUKm56nZ4xqKGmJZLT7nP1hYwWCMt9HIeV3hUdF61rtLULK2qacu/exec",
+        scriptURL: "https://script.google.com/macros/s/AKfycbxEo7eJ6Xocdt83O3TRBaqi09sTIbDVeJk0aPZCR5JQ35wDL99_aypunp8fE1IWFqC-/exec",
         bkLogo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlam0ozt9K851bh-VyDmNQH5dre_iv5OOMtA&s"
     };
 

@@ -72,6 +72,7 @@
             border: none;
             transition: all 0.2s;
         }
+
         .btn-custom:hover {
             background-color: var(--bk-red-hover);
             transform: scale(0.98);
@@ -218,6 +219,7 @@
                             <h5 class="fw-bold mb-0"><i class="bi bi-list-task me-2 text-warning"></i>History</h5>
                             <div class="btn-group">
                                 <button id="btn-excel" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i> Excel</button>
+                                <button id="print-requisition" class="btn btn-outline-dark">🖨️ Print Requisition</button>
                                 <button id="btn-print-view" class="btn btn-sm btn-outline-dark"><i class="bi bi-printer me-1"></i> Print</button>
                             </div>
                         </div>
@@ -329,216 +331,381 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxEo7eJ6Xocdt83O3TRBaqi09sTIbDVeJk0aPZCR5JQ35wDL99_aypunp8fE1IWFqC-/exec";
+    
+    let allPurchases = [];
+    
+    // --- 1. Fetch Data on Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchPurchases();
+        
+        // Set Date for Print preview just in case
+        const today = new Date().toLocaleDateString('fr-FR');
+        if(document.getElementById('print-date')) document.getElementById('print-date').textContent = today;
+        if(document.getElementById('print-pr')) document.getElementById('print-pr').textContent = `PR-${Math.floor(Math.random()*10000)}`;
+    });
 
-    <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbxRXuHcrTYC312oaUKm56nZ4xqKGmJZLT7nP1hYwWCMt9HIeV3hUdF61rtLULK2qacu/exec";
-        
-        let allPurchases = [];
-        
-        // --- 1. Fetch Data on Load ---
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchPurchases();
+    async function fetchPurchases() {
+        const tableBody = document.getElementById('purchase-list');
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-danger"></div><br>Loading Database...</td></tr>';
+
+        try {
+            const response = await fetch(scriptURL);
+            const data = await response.json();
             
-            // Set Date for Print
-            document.getElementById('print-date').textContent = new Date().toLocaleDateString('fr-FR');
-            document.getElementById('print-pr').textContent = `PR-${Math.floor(Math.random()*10000)}`;
-        });
+            // Process Data
+            allPurchases = data.map(p => ({
+                ...p,
+                Quantity: parseFloat(p.Quantity) || 0,
+                "Unit Cost ($)": parseFloat(p["Unit Cost ($)"]) || 0,
+                "Total Cost ($)": parseFloat(p["Total Cost ($)"]) || 0
+            }));
 
-        async function fetchPurchases() {
-            const tableBody = document.getElementById('purchase-list');
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-danger"></div><br>Loading Database...</td></tr>';
+            renderTable(allPurchases);
+            showToast("✅ Connected To database successfully!");
 
-            try {
-                const response = await fetch(scriptURL);
-                const data = await response.json();
-                
-                // Process Data
-                allPurchases = data.map(p => ({
-                    ...p,
-                    Quantity: parseFloat(p.Quantity) || 0,
-                    "Unit Cost ($)": parseFloat(p["Unit Cost ($)"]) || 0,
-                    "Total Cost ($)": parseFloat(p["Total Cost ($)"]) || 0
-                }));
+        } catch (error) {
+            console.error('Error:', error);
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger fw-bold">❌ Connection Failed. Check Internet or Script URL.</td></tr>';
+        }
+    }
 
-                renderTable(allPurchases);
-                showToast("✅ Connected To database successfully!");
+    // --- 2. Render Table ---
+    function renderTable(data) {
+        const tbody = document.getElementById('purchase-list');
+        const totalEl = document.getElementById('grand-total');
+        tbody.innerHTML = '';
+        let grandTotal = 0;
 
-            } catch (error) {
-                console.error('Error:', error);
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger fw-bold">❌ Connection Failed. Check Internet or Script URL.</td></tr>';
-            }
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No records found.</td></tr>';
+            totalEl.textContent = '0.00';
+            return;
         }
 
-        // --- 2. Render Table ---
-        function renderTable(data) {
-            const tbody = document.getElementById('purchase-list');
-            const totalEl = document.getElementById('grand-total');
-            tbody.innerHTML = '';
-            let grandTotal = 0;
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No records found.</td></tr>';
-                totalEl.textContent = '0.00';
-                return;
-            }
-
-            data.forEach((item, index) => {
-                grandTotal += item["Total Cost ($)"];
-                const date = new Date(item.Date).toLocaleDateString('fr-FR');
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="fw-bold text-dark">${item["Item Name"]}</td>
-                    <td class="text-end font-monospace">${item.Quantity}</td>
-                    <td class="text-end font-monospace">${item["Unit Cost ($)"].toFixed(2)}</td>
-                    <td class="text-end fw-bold font-monospace">${item["Total Cost ($)"].toFixed(2)}</td>
-                    <td><span class="badge bg-secondary bg-opacity-10 text-dark border">${item.Location}</span></td>
-                    <td class="small text-muted">${date}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-light text-primary border" onclick="printSingle(${index})"><i class="bi bi-printer"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            totalEl.textContent = grandTotal.toFixed(2);
-        }
-
-        // --- 3. Add Purchase Logic ---
-        const form = document.getElementById('purchase-form');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = form.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
+        data.forEach((item, index) => {
+            grandTotal += item["Total Cost ($)"];
+            const date = new Date(item.Date).toLocaleDateString('fr-FR');
             
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-
-            const formData = new FormData();
-            formData.append('itemName', document.getElementById('item-name').value);
-            formData.append('quantity', document.getElementById('quantity').value);
-            formData.append('unitCost', document.getElementById('unit-cost').value);
-            formData.append('location', document.getElementById('location').value);
-            formData.append('recipient', document.getElementById('recipient').value);
-
-            try {
-                await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: formData });
-                showToast("✅ Purchase Added Successfully!");
-                form.reset();
-                fetchPurchases(); // Refresh list
-            } catch (error) {
-                showToast("❌ Error saving purchase", "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold text-dark">${item["Item Name"]}</td>
+                <td class="text-end font-monospace">${item.Quantity}</td>
+                <td class="text-end font-monospace">${item["Unit Cost ($)"].toFixed(2)}</td>
+                <td class="text-end fw-bold font-monospace">${item["Total Cost ($)"].toFixed(2)}</td>
+                <td><span class="badge bg-secondary bg-opacity-10 text-dark border">${item.Location}</span></td>
+                <td class="small text-muted">${date}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-light text-primary border" onclick="printSingle(${index})"><i class="bi bi-printer"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
 
-        // --- 4. Filtering ---
-        document.getElementById('btn-filter').addEventListener('click', () => {
-            const start = document.getElementById('start-date').value;
-            const end = document.getElementById('end-date').value;
-            
-            if(!start || !end) return showToast("⚠️ Select start and end dates", "error");
+        totalEl.textContent = grandTotal.toFixed(2);
+    }
 
+    // --- 3. Add Purchase Logic ---
+    const form = document.getElementById('purchase-form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+        const formData = new FormData();
+        formData.append('itemName', document.getElementById('item-name').value);
+        formData.append('quantity', document.getElementById('quantity').value);
+        formData.append('unitCost', document.getElementById('unit-cost').value);
+        formData.append('location', document.getElementById('location').value);
+        formData.append('recipient', document.getElementById('recipient').value);
+
+        try {
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: formData });
+            showToast("✅ Purchase Added Successfully!");
+            form.reset();
+            fetchPurchases(); // Refresh list
+        } catch (error) {
+            showToast("❌ Error saving purchase", "error");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    // --- 4. Filtering ---
+    function getFilteredData() {
+        const start = document.getElementById('start-date').value;
+        const end = document.getElementById('end-date').value;
+        
+        let filtered = allPurchases;
+
+        if (start && end) {
             const sDate = new Date(start); sDate.setHours(0,0,0,0);
             const eDate = new Date(end); eDate.setHours(23,59,59,999);
 
-            const filtered = allPurchases.filter(p => {
+            filtered = filtered.filter(p => {
                 const pDate = new Date(p.Date);
                 return pDate >= sDate && pDate <= eDate;
             });
-
-            renderTable(filtered);
-            showToast(`Filtered: ${filtered.length} items found`);
-        });
-
-        document.getElementById('btn-clear').addEventListener('click', () => {
-            document.getElementById('start-date').value = '';
-            document.getElementById('end-date').value = '';
-            renderTable(allPurchases);
-        });
-
-        // --- 5. Print Logic ---
-        document.getElementById('btn-print-view').addEventListener('click', () => {
-            // Check if filtering is active by checking input values
-            const start = document.getElementById('start-date').value;
-            const end = document.getElementById('end-date').value;
-            
-            let dataToPrint = allPurchases;
-            
-            if (start && end) {
-                const sDate = new Date(start); sDate.setHours(0,0,0,0);
-                const eDate = new Date(end); eDate.setHours(23,59,59,999);
-                dataToPrint = allPurchases.filter(p => {
-                    const pDate = new Date(p.Date);
-                    return pDate >= sDate && pDate <= eDate;
-                });
-            }
-
-            preparePrint(dataToPrint);
-        });
-
-        function printSingle(index) {
-            preparePrint([allPurchases[index]]);
         }
+        return filtered;
+    }
 
-        function preparePrint(data) {
-            const printBody = document.getElementById('print-tbody');
-            printBody.innerHTML = '';
-            let total = 0;
-            const MAX_ROWS = 12;
+    document.getElementById('btn-filter').addEventListener('click', () => {
+        const filtered = getFilteredData();
+        renderTable(filtered);
+        showToast(`Filtered: ${filtered.length} items found`);
+    });
 
-            data.forEach((p, i) => {
-                total += p["Total Cost ($)"];
-                printBody.innerHTML += `
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        document.getElementById('start-date').value = '';
+        document.getElementById('end-date').value = '';
+        renderTable(allPurchases);
+    });
+
+    // --- 5. PRINT REQUISITION LOGIC (FIXED FOR DARK MODE) ---
+    const handlePrint = () => {
+        const filteredData = getFilteredData();
+        if (filteredData.length === 0) {
+            showToast("⚠️ No data to print", "error");
+            return;
+        }
+        prepareRequisitionPrint(filteredData);
+    };
+
+    document.getElementById('btn-print-view').addEventListener('click', handlePrint);
+    document.getElementById('print-requisition').addEventListener('click', handlePrint);
+
+    function printSingle(index) {
+        const item = allPurchases[index]; 
+        if(item) prepareRequisitionPrint([item]);
+    }
+
+    function prepareRequisitionPrint(data) {
+        const today = new Date();
+        const dateLabel = today.toLocaleDateString('fr-FR');
+        const prNumber = `PR-${today.getFullYear()}-${String(Math.floor(Math.random() * 999)).padStart(3, '0')}`;
+        const MAX_ROWS = 12;
+
+        const totalCostUSD = data.reduce((sum, p) => sum + (p["Total Cost ($)"] || 0), 0);
+        const formattedTotalCost = totalCostUSD.toFixed(2);
+
+        const rows = data.map((p, i) => `
+            <tr style="height: 14px;">
+                <td style="text-align:center">${i + 1}</td>
+                <td>${p["Item Code"] || "-"}</td>
+                <td><span style="font-family: 'Times New Roman', Times, serif; font-weight: bold; font-size: 13px;">${p["Item Name"]}</span> <span style="font-size:10px;">(${p["Recipient"]} ; ${p["Location"]})</span> </td>
+                <td>${p["Category"] || "-"}</td>
+                <td style="text-align:Center;" >${p.Quantity}</td>
+                <td style="text-align:Center;" >${p["Unit"] || "pcs"}</td>
+                <td>${p["Date Needed"] || "-"}</td>
+                <td style="text-align:right;" >${(p["Unit Cost ($)"] ).toFixed(2)}</td>
+                <td style="text-align:right;" >${p["Total Cost ($)"].toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const emptyRowsCount = Math.max(0, MAX_ROWS - data.length);
+        const emptyRows = Array.from({ length: emptyRowsCount }).map(() => `
+            <tr style="height: 16px;">
+                <td>&nbsp;</td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+        `).join('');
+
+        const footerRow = `<tr>
+            <td colspan="8" style="text-align: right; font-weight: bold;">Total Mad :</td>
+            <td style="text-align: right; font-weight: bold;">${formattedTotalCost} Dhs</td>
+        </tr>`;
+
+        // --- UPDATED CSS to force WHITE backgrounds ---
+        const requisitionHTML = `
+            <style>
+                @page { size: A4 landscape; margin: 10mm; }
+                
+                /* Override Color Scheme */
+                :root { color-scheme: light; }
+                
+                html, body { 
+                    margin: 0 !important; 
+                    padding: 0 !important; 
+                    width: 100%; 
+                    height: 100%; 
+                    font-family: Arial, sans-serif; 
+                    font-size: 11px; 
+                    background-color: #ffffff !important; /* Force White */
+                    color: #000000 !important; /* Force Black */
+                    -webkit-print-color-adjust: exact !important; 
+                    print-color-adjust: exact !important; 
+                }
+
+                /* Ensure all text is black and backgrounds are white */
+                *, *::before, *::after {
+                    color: #000000 !important;
+                    text-shadow: none !important;
+                    box-shadow: none !important;
+                }
+
+                /* Layout Containers */
+                #print-view, #print-area { 
+                    display: block !important; 
+                    background-color: #ffffff !important; 
+                }
+                body > *:not(#print-view) { display: none !important; }
+
+                /* Headers */
+                header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
+                .logo-left img { width: 70px; margin-right: 15px; filter: grayscale(100%); }
+                .header-title { flex: 1; text-align: center; }
+                .header-title h3 { font-size: 20px; margin: 0 0 10px 0; }
+                .header-title h4 { font-size: 13px; margin: 10px 0 0 0; }
+                
+                /* Tables - CRITICAL FIX */
+                table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; margin-bottom: 5px; background-color: #ffffff !important; }
+                
+                /* Force Table Rows/Cells to be White */
+                tr, td { 
+                    background-color: #ffffff !important; 
+                    border: 1px solid #000 !important; 
+                    padding: 3px 4px; 
+                    text-align: left; 
+                    height: 16px;
+                    color: black !important;
+                }
+                
+                /* Table Header - Grey Background */
+                th { 
+                    background-color: #e0e0e0 !important; 
+                    border: 1px solid #000 !important; 
+                    text-align: center; 
+                    font-weight: bold; 
+                    -webkit-print-color-adjust: exact; 
+                }
+                
+                /* Columns Widths */
+                .item-table th:nth-child(1) { width: 4%; } 
+                .item-table th:nth-child(2) { width: 6%; } 
+                .item-table th:nth-child(3) { width: 34%; } 
+                .item-table th:nth-child(4) { width: 8%; } 
+                .item-table th:nth-child(5) { width: 6%; } 
+                .item-table th:nth-child(6) { width: 6%; } 
+                .item-table th:nth-child(7) { width: 10%; } 
+                .item-table th:nth-child(8) { width: 13%; } 
+                .item-table th:nth-child(9) { width: 13%; } 
+                
+                /* Split Box */
+                .border-split { display: flex; justify-content: space-between; border: 1px solid #000 !important; padding: 5px; margin-bottom: 8px; margin-top: 8px; background-color: #fff !important; }
+                .border-split .left, .border-split .right { width: 49%; }
+                .border-split .left { border-right: 1px solid #000 !important; padding-right: 8px; }
+                
+                /* Signatures */
+                .sign-table { border: none !important; margin-top: 10px; table-layout: fixed; background: #fff !important; }
+                .sign-table td { border: none !important; text-align: center; padding-top: 5px; vertical-align: top; }
+                .sign-line { border-bottom: 1px solid #000 !important; display: block; width: 90%; margin: 0 auto 3px auto; height: 30px;}
+                
+                .no-print-btn { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
+                @media print { .no-print-btn { display: none !important; } }
+            </style>
+
+            <div id="print-area">
+                <header>
+                    <div class="logo-left">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0Xc228_zSp0Uk3xtCqLZvDiyUYgYeIkvXTg&s" alt="Logo">
+                    </div>
+                    <div class="header-title">
+                        <h3><strong>General First Food Services SAS</strong></h3>
+                        <h4><strong>Purchase Requisition Form</strong></h4>
+                    </div>
+                </header>
+
+                <div class="section">
+                    <table style="margin-bottom: 5px;">
+                        <tr>
+                            <td style="width: 25%;">Date: <strong>${dateLabel}</strong></td>
+                            <td style="width: 25%;">PR no.: <strong>${prNumber}</strong></td>
+                            <td style="width: 15%;">OPEX: ☐</td>
+                            <td style="width: 15%;">MR no.: ................</td>
+                            <td style="width: 15%;">CAPEX: ☐</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="font-weight:bold; margin-bottom:2px;">User Information</div>
+                <table>
                     <tr>
-                        <td style="text-align:center">${i+1}</td>
-                        <td><strong>${p["Item Name"]}</strong><br><small>(${p.Recipient} - ${p.Location})</small></td>
-                        <td style="text-align:center">${p.Quantity}</td>
-                        <td style="text-align:center">Unit</td>
-                        <td style="text-align:right">${p["Unit Cost ($)"].toFixed(2)}</td>
-                        <td style="text-align:right">${p["Total Cost ($)"].toFixed(2)}</td>
+                        <td style="width: 33%;">Employee name: ..............................</td>
+                        <td style="width: 33%;">Department: ...................................</td>
+                        <td style="width: 33%;">Location: ........................................</td>
                     </tr>
-                `;
-            });
+                </table>
 
-            // Empty rows for A4 Layout
-            const emptyCount = Math.max(0, MAX_ROWS - data.length);
-            for(let j=0; j<emptyCount; j++) {
-                printBody.innerHTML += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>';
-            }
+                <div style="font-weight:bold; margin-top:5px; margin-bottom:2px;">Please order the following item(s):</div>
+                <table class="item-table">
+                    <thead>
+                        <tr>
+                            <th>S. No.</th>
+                            <th>Item code</th>
+                            <th>Item description</th>
+                            <th>Item category</th>
+                            <th>Qty</th>
+                            <th>UOM</th>
+                            <th>Needed By</th>
+                            <th>Unit Price (MAD)</th>
+                            <th>Total (MAD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows + emptyRows + footerRow}</tbody>
+                </table>
+                <em style="font-size:10px;">*Please enclose details in attached sheet if applicable</em>
 
-            // Total Row
-            printBody.innerHTML += `
-                <tr>
-                    <td colspan="5" style="text-align:right; font-weight:bold; background:#eee;">GRAND TOTAL (MAD):</td>
-                    <td style="text-align:right; font-weight:bold; background:#eee;">${total.toFixed(2)}</td>
-                </tr>
-            `;
+                <div class="border-split">
+                    <div class="left"><strong>Deliver item to:</strong><br>Siege</div>
+                    <div class="right"><strong>Remarks:</strong><br></div>
+                </div>
 
-            document.getElementById('main-app').style.display = 'none';
-            document.getElementById('print-view').style.display = 'block';
-        }
+                <table class="sign-table">
+                    <tr>
+                        <td>Requested by:<span class="sign-line"></span></td>
+                        <td>Approved by:<span class="sign-line"></span>(Purchase Mgr)</td>
+                        <td>Reviewed by:<span class="sign-line"></span>(Finance Mgr)</td>
+                        <td>Approved by:<span class="sign-line"></span>(General Mgr)</td>
+                    </tr>
+                </table>
+                
+                <div class="no-print-btn">
+                     <button onclick="window.print()" class="btn btn-primary btn-lg">🖨️ Print</button>
+                     <button onclick="location.reload()" class="btn btn-secondary btn-lg">⬅️ Back</button>
+                </div>
+            </div>
+        `;
 
-        // --- 6. Excel Export ---
-        document.getElementById('btn-excel').addEventListener('click', () => {
-            const ws = XLSX.utils.json_to_sheet(allPurchases);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Purchases");
-            XLSX.writeFile(wb, "BurgerKing_IT_Purchases.xlsx");
-        });
+        const printContainer = document.getElementById('print-view');
+        printContainer.innerHTML = requisitionHTML;
+        
+        document.getElementById('main-app').style.display = 'none';
+        printContainer.style.display = 'block';
+    }
 
-        // --- 7. Toast Utility ---
-        function showToast(msg, type='success') {
-            const container = document.getElementById('toastContainer');
-            const bg = type === 'error' ? 'bg-danger' : 'bg-success';
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white ${bg} border-0 show`;
-            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-    </script>
+    // --- 6. Excel Export ---
+    document.getElementById('btn-excel').addEventListener('click', () => {
+        const ws = XLSX.utils.json_to_sheet(allPurchases);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Purchases");
+        XLSX.writeFile(wb, "BurgerKing_IT_Purchases.xlsx");
+    });
+
+    // --- 7. Toast Utility ---
+    function showToast(msg, type='success') {
+        const container = document.getElementById('toastContainer');
+        const bg = type === 'error' ? 'bg-danger' : 'bg-success';
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white ${bg} border-0 show`;
+        toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+</script>
 </body>
 </html>
