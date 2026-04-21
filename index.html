@@ -443,21 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
         authModal.show();
     });
 
-   // Helper function to hash a string using SHA-256
-    async function hashString(str) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(str);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
     // Handle Auth Code Verification
-    verifyCodeBtn.addEventListener('click', async () => {
-        const expectedHash = '7871b6ba42398cdb2c953531b7829a2fc97e42d7637731776d5e1654452f1e67';
-        const inputHash = await hashString(authCodeInput.value);
-
-        if (inputHash === expectedHash) {
+    verifyCodeBtn.addEventListener('click', () => {
+        if (authCodeInput.value === 'gffsbk026') {
             authModal.hide();
             
             // Populate data into the edit modal
